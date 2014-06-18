@@ -4,8 +4,8 @@
 // @category       Info
 // @version        0.1.0
 // @namespace      
-// @updateURL      https://gist.github.com/KolpakovAleksandr/9bdc66885d71966d5969
-// @downloadURL    https://gist.github.com/KolpakovAleksandr/9bdc66885d71966d5969
+// @updateURL      http://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
+// @downloadURL    http://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
 // @description    
 // @include        https://www.ingress.com/intel*
 // @include        http://www.ingress.com/intel*
