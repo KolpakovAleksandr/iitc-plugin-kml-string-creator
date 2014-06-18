@@ -4,8 +4,8 @@
 // @category       Info
 // @version        0.1.0
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
-// @updateURL      http://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
-// @downloadURL    http://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
+// @updateURL      https://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
+// @downloadURL    https://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
 // @description    
 // @include        https://www.ingress.com/intel*
 // @include        http://www.ingress.com/intel*
