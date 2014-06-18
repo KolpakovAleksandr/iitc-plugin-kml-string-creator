@@ -1,5 +1,5 @@
 // ==UserScript==
-// @id             iitc-plugin-kml-string-creator@KidTM
+// @id             iitc-plugin-kml-string-creator@kidtm
 // @name           IITC plugin: KML string creator
 // @category       Info
 // @version        0.1.0
