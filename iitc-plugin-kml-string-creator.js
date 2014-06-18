@@ -3,7 +3,7 @@
 // @name           IITC plugin: KML string creator
 // @category       Info
 // @version        0.1.0
-// @namespace      
+// @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @updateURL      http://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
 // @downloadURL    http://kolpakovaleksandr.github.io/iitc-plugin-kml-string-creator/iitc-plugin-kml-string-creator.js
 // @description    
