@@ -1,15 +1,19 @@
 // ==UserScript==
 // @id             ingress-intel-total-conversion@jonatkins
 // @name           IITC: Ingress intel map total conversion
-// @version        0.22.2.20150404.827
+// @version        0.25.2.20150917.163503
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
-// @updateURL      https://secure.jonatkins.com/iitc/release/total-conversion-build.meta.js
-// @downloadURL    https://secure.jonatkins.com/iitc/release/total-conversion-build.user.js
-// @description    [jonatkins-2015-04-04-000827] Total conversion for the ingress intel map.
-// @include        http://www.ingress.com/intel*
+// @updateURL      https://secure.jonatkins.com/iitc/test/total-conversion-build.meta.js
+// @downloadURL    https://secure.jonatkins.com/iitc/test/total-conversion-build.user.js
+// @description    [jonatkins-test-2015-09-17-163503] Total conversion for the ingress intel map.
 // @include        https://www.ingress.com/intel*
-// @match          http://www.ingress.com/intel*
+// @include        http://www.ingress.com/intel*
 // @match          https://www.ingress.com/intel*
+// @match          http://www.ingress.com/intel*
+// @include        https://www.ingress.com/mission/*
+// @include        http://www.ingress.com/mission/*
+// @match          https://www.ingress.com/mission/*
+// @match          http://www.ingress.com/mission/*
 // @grant          none
 // ==/UserScript==
 
@@ -17,7 +21,7 @@
 // REPLACE ORIG SITE ///////////////////////////////////////////////////
 if(document.getElementsByTagName('html')[0].getAttribute('itemscope') != null)
   throw('Ingress Intel Website is down, not a userscript issue.');
-window.iitcBuildDate = '2015-04-04-000827';
+window.iitcBuildDate = '2015-09-17-163503';
 
 // disable vanilla JS
 window.onload = function() {};
@@ -62,7 +66,7 @@ for(var i = 0; i < d.length; i++) {
 // possible without requiring scripts.
 document.getElementsByTagName('head')[0].innerHTML = ''
   + '<title>Ingress Intel Map</title>'
-  + '<style>/* general rules ******************************************************/\n\n/* for printing directly from the browser, hide all UI components\n * NOTE: @media needs to be first?\n */\n@media print {\n  .leaflet-control-container { display: none !important; }\n  #chatcontrols, #chat, #chatinput { display: none !important; }\n  #sidebartoggle, #sidebar { display: none !important; }\n  #updatestatus { display: none !important; }\n  #portal_highlight_select { display: none !important; }\n}\n\n\nhtml, body, #map {\n  height: 100%;\n  width: 100%;\n  overflow: hidden; /* workaround for #373 */\n  background: #0e3d4e;\n}\n\n\nbody {\n  font-size: 14px;\n  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;\n  margin: 0;\n}\n\n#scrollwrapper {\n  overflow-x: hidden;\n  overflow-y: auto;\n  position: fixed;\n  right: -38px;\n  top: 0;\n  width: 340px;\n  bottom: 45px;\n  z-index: 1001;\n  pointer-events: none;\n}\n\n#sidebar {\n  background-color: rgba(8, 48, 78, 0.9);\n  border-left: 1px solid #20A8B1;\n  color: #888;\n  position: relative;\n  left: 0;\n  top: 0;\n  max-height: 100%;\n  overflow-y:scroll;\n  overflow-x:hidden;\n  z-index: 3000;\n  pointer-events: auto;\n}\n\n#sidebartoggle {\n  display: block;\n  padding: 20px 5px;\n  margin-top: -31px; /* -(toggle height / 2) */\n  line-height: 10px;\n  position: absolute;\n  top: 108px;\n  z-index: 3001;\n  background-color: rgba(8, 48, 78, 0.9);\n  color: #FFCE00;\n  border: 1px solid #20A8B1;\n  border-right: none;\n  border-radius: 5px 0 0 5px;\n  text-decoration: none;\n  right: -50px; /* overwritten later by the script with SIDEBAR_WIDTH */\n}\n\n.enl {\n  color: #03fe03 !important;\n}\n\n.res {\n  color: #00c5ff !important;\n}\n\n.none {\n  color: #fff;\n}\n\n.nickname {\n  cursor: pointer !important;\n}\n\na {\n  color: #ffce00;\n  cursor: pointer;\n  text-decoration: none;\n}\n\na:hover {\n  text-decoration: underline;\n}\n\n/* map display, required because GMaps uses a high z-index which is\n * normally above Leaflet’s vector pane */\n.leaflet-map-pane {\n  z-index: 1000;\n}\n\n/* leaflet layer chooser, when opened, is above other panels */\n/* doesn\'t actually work :( - left commented out for reference\n.leaflet-control-layers-expanded {\n  z-index: 9999 !important;\n}\n*/\n\n\n.leaflet-control-layers-overlays label.disabled {\n  text-decoration: line-through;\n  cursor: help;\n}\n\n\n\n/* base layer selection - first column */\n.leaflet-control-layers-base {\n  float: left;\n  overflow-y: auto;\n  max-height: 600px;\n}\n\n/* overlays layer selection - 2nd column */\n.leaflet-control-layers-overlays {\n  float: left;\n  margin-left: 8px;\n  border-left: 1px solid #DDDDDD;\n  padding-left: 8px;\n  overflow-y: auto;\n  max-height: 600px;\n}\n\n/* hide the usual separator */\n.leaflet-control-layers-separator {\n  display: none;\n}\n\n\n\n.help {\n  cursor: help;\n}\n\n.toggle {\n  display: block;\n  height: 0;\n  width: 0;\n}\n\n/* field mu count */\n.fieldmu {\n  color: #FFCE00;\n  font-size: 13px;\n  font-family: Roboto, "Helvetica Neue", Helvetica, sans-serif; /*override leaflet-container */\n  text-align: center;\n  text-shadow: 0 0 0.2em black, 0 0 0.2em black, 0 0 0.2em black;\n  pointer-events: none;\n}\n\n\n/* chat ***************************************************************/\n\n#chatcontrols {\n  color: #FFCE00;\n  background: rgba(8, 48, 78, 0.9);\n  position: absolute;\n  left: 0;\n  z-index: 3000;\n  height: 26px;\n  padding-left:1px;\n}\n\n#chatcontrols.expand {\n  top: 0;\n  bottom: auto;\n}\n\n#chatcontrols a {\n  margin-left: -1px;\n  display: inline-block;\n  width: 94px;\n  text-align: center;\n  height: 24px;\n  line-height: 24px;\n  border: 1px solid #20A8B1;\n  vertical-align: top;\n}\n\n#chatcontrols a:first-child {\n  letter-spacing:-1px;\n  text-decoration: none !important;\n}\n\n#chatcontrols a.active {\n  border-color: #FFCE00;\n  border-bottom-width:0px;\n  font-weight:bold;\n  background: rgb(8, 48, 78);\n}\n\n#chatcontrols a.active + a {\n  border-left-color: #FFCE00\n}\n\n\n#chatcontrols .toggle {\n  border-left: 10px solid transparent;\n  border-right: 10px solid transparent;\n  margin: 6px auto auto;\n}\n\n#chatcontrols .expand {\n  border-bottom: 10px solid #FFCE00;\n}\n\n#chatcontrols .shrink {\n  border-top: 10px solid #FFCE00;\n}\n\n#chatcontrols .loading {\n  background-color: rgba(255,0,0,0.3);\n  -webkit-animation: chatloading 1.2s infinite linear;\n  -moz-animation: chatloading 1.2s infinite linear;\n  animation: chatloading 1.2s infinite linear;\n}\n\n@-webkit-keyframes chatloading {\n    0% { background-color: rgba(255,0,0,0.4) }\n   50% { background-color: rgba(255,0,0,0.1) }\n  100% { background-color: rgba(255,0,0,0.4) }\n}\n\n@-moz-keyframes chatloading {\n    0% { background-color: rgba(255,0,0,0.4) }\n   50% { background-color: rgba(255,0,0,0.1) }\n  100% { background-color: rgba(255,0,0,0.4) }\n}\n\n@keyframes chatloading {\n    0% { background-color: rgba(255,0,0,0.4) }\n   50% { background-color: rgba(255,0,0,0.1) }\n  100% { background-color: rgba(255,0,0,0.4) }\n}\n\n\n\n#chat {\n  position: absolute;\n  width: 708px;\n  bottom: 23px;\n  left: 0;\n  z-index: 3000;\n  background: rgba(8, 48, 78, 0.9);\n  line-height: 15px;\n  color: #eee;\n  border: 1px solid #20A8B1;\n  border-bottom: 0;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\nem {\n  color: red;\n  font-style: normal;\n}\n\n#chat.expand {\n  height:auto;\n  top: 25px;\n}\n\n\n#chat > div {\n  overflow-x:hidden;\n  overflow-y:scroll;\n  height: 100%;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  padding: 2px;\n  position:relative;\n}\n\n#chat table, #chatinput table {\n  width: 100%;\n  table-layout: fixed;\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n\n#chatinput table {\n  height: 100%;\n}\n\n#chat td, #chatinput td {\n  font-size: 13px;\n  vertical-align: top;\n  padding-bottom: 3px;\n}\n\n/* time */\n#chat td:first-child, #chatinput td:first-child {\n  width: 44px;\n  overflow: hidden;\n  padding-left: 2px;\n  color: #bbb;\n  white-space: nowrap;\n}\n\n#chat time {\n  cursor: help;\n}\n\n/* nick */\n#chat td:nth-child(2), #chatinput td:nth-child(2) {\n  width: 91px;\n  overflow: hidden;\n  padding-left: 2px;\n  white-space: nowrap;\n}\n\n#chat td .system_narrowcast {\n  color: #f66 !important;\n}\n\nmark {\n  background: transparent;\n}\n\n.invisep {\n  display: inline-block;\n  width: 1px;\n  height: 1px;\n  overflow:hidden;\n  color: transparent;\n}\n\n/* divider */\nsummary {\n  color: #bbb;\n  display: inline-block;\n  height: 16px;\n  overflow: hidden;\n  padding: 0 2px;\n  white-space: nowrap;\n  width: 100%;\n}\n\n#chatinput {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  padding: 0 2px;\n  background: rgba(8, 48, 78, 0.9);\n  width: 708px;\n  height: 23px;\n  border: 1px solid #20A8B1;\n  z-index: 3001;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n#chatinput td {\n  padding-bottom: 1px;\n  vertical-align: middle;\n}\n\n\n#chatinput input {\n  background: transparent;\n  color: #EEEEEE;\n  width: 100%;\n  height: 100%;\n  padding:3px 4px 1px 4px;\n}\n\n\n\n/* sidebar ************************************************************/\n\n#sidebar > * {\n  border-bottom: 1px solid #20A8B1;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n\n\n#sidebartoggle .toggle {\n  border-bottom: 10px solid transparent;\n  border-top: 10px solid transparent;\n}\n\n#sidebartoggle .open {\n  border-right: 10px solid #FFCE00;\n}\n\n#sidebartoggle .close {\n  border-left: 10px solid #FFCE00;\n}\n\n/* player stats */\n#playerstat {\n  height: 30px;\n}\n\nh2 {\n  color: #ffce00;\n  font-size: 21px;\n  padding: 0 4px;\n  margin: 0;\n  cursor:help;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  width: 100%;\n}\n\nh2 #name {\n  font-weight: 300;\n  display: inline-block;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: top;\n  white-space: nowrap;\n  width: 205px;\n  position: relative;\n}\n\nh2 #stats {\n  float: right;\n  height: 100%;\n  overflow: hidden;\n}\n\n#signout {\n  font-size: 12px;\n  font-weight: normal;\n  line-height: 29px;\n  padding: 0 4px;\n  position: absolute;\n  top: 0;\n  right: 0;\n  background-color: rgba(8, 48, 78, 0.5);\n  display: none; /* starts hidden */\n}\n#name:hover #signout {\n  display: block;\n}\n\nh2 sup, h2 sub {\n  display: block;\n  font-size: 11px;\n  margin-bottom: -2px;\n}\n\n\n/* gamestats */\n#gamestat {\n  height: 22px;\n}\n\n#gamestat span {\n  display: block;\n  float: left;\n  font-weight: bold;\n  cursor:help;\n  height: 21px;\n  line-height: 22px;\n}\n\n#gamestat .res {\n  background: #005684;\n  text-align: right;\n}\n\n#gamestat .enl {\n  background: #017f01;\n}\n\n\n/* search input, and others */\ninput:not([type]), .input,\ninput[type="text"], input[type="password"],\ninput[type="number"], input[type="email"],\ninput[type="search"], input[type="url"] {\n  background-color: rgba(0, 0, 0, 0.3);\n  color: #ffce00;\n  height: 24px;\n  padding:0px 4px 0px 4px;\n  font-size: 12px;\n  border:0;\n  font-family:inherit;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n#searchwrapper {\n  position: relative;\n}\n#search {\n  width: 100%;\n  padding-right: 24px;\n}\n#buttongeolocation {\n  position: absolute;\n  top: 2px;\n  right: 2px;\n  cursor: pointer;\n}\n#searchwrapper h3 {\n  font-size: 1em;\n  height: auto;\n  cursor: pointer;\n}\n.searchquery {\n  max-height: 25em;\n  overflow-y: auto;\n}\n#searchwrapper .ui-accordion-header::before {\n  font-size: 18px;\n  margin-right: 2px;\n  font-weight: normal;\n  line-height: 1em;\n  content: "⊞";\n}\n#searchwrapper .ui-accordion-header-active::before {\n  content: "⊟";\n}\n#searchwrapper .ui-accordion-content {\n  margin: 0;\n  overflow: hidden;\n}\n#searchwrapper ul {\n  padding-left: 14px;\n}\n#searchwrapper li {\n  cursor: pointer;\n}\n#searchwrapper li a {\n  margin-left: -14px;\n  padding-left: 14px;\n  background-position: 1px center;\n  background-repeat: no-repeat;\n  background-size: 12px 12px;\n}\n#searchwrapper li:focus a, #searchwrapper li:hover a {\n  text-decoration: underline;\n}\n#searchwrapper li em {\n  color: #ccc;\n  font-size: 0.9em;\n}\n\n::-webkit-input-placeholder {\n  font-style: italic;\n}\n\n:-moz-placeholder {\n  font-style: italic;\n}\n\n::-moz-placeholder {\n  font-style: italic;\n}\n\n.leaflet-control-layers input {\n  height: auto;\n  padding: 0;\n}\n\n\n/* portal title and image */\nh3 {\n  font-size: 16px;\n  padding: 0 4px;\n  margin:0;\n  height: 23px;\n  width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n.imgpreview {\n  height: 190px;\n  background: no-repeat center center;\n  background-size: contain;\n  cursor: help;\n  overflow: hidden;\n  position: relative;\n}\n\n.imgpreview img.hide {\n  display: none;\n}\n\n.imgpreview .portalDetails {\n  display: none;\n}\n\n#level {\n  font-size: 40px;\n  text-shadow: -1px -1px #000, 1px -1px #000, -1px 1px #000, 1px 1px #000, 0 0 5px #fff;\n  display: block;\n  margin-right: 15px;\n  text-align:right;\n  float: right;\n}\n\n/* portal mods */\n.mods {\n  margin: 3px auto 1px auto;\n  width: 296px;\n  height: 67px;\n  text-align: center;\n}\n\n.mods span {\n  background-color: rgba(0, 0, 0, 0.3);\n  /* can’t use inline-block because Webkit\'s implementation is buggy and\n   * introduces additional margins in random cases. No clear necessary,\n   * as that’s solved by setting height on .mods. */\n  display: block;\n  float:left;\n  height: 63px;\n  margin: 0 2px;\n  overflow: hidden;\n  padding: 2px;\n  text-align: center;\n  width: 63px;\n  cursor:help;\n  border: 1px solid #666;\n}\n\n.mods span:not([title]) {\n  cursor: auto;\n}\n\n.res .mods span, .res .meter {\n  border: 1px solid #0076b6;\n}\n.enl .mods span, .enl .meter {\n  border: 1px solid #017f01;\n}\n\n/* random details, resonator details */\n#randdetails, #resodetails {\n  width: 100%;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  padding: 0 4px;\n  table-layout: fixed;\n  border-spacing: 0m;\n  border-collapse: collapse;\n}\n\n#randdetails td, #resodetails td {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: top;\n  white-space: nowrap;\n  width: 50%;\n}\n\n#randdetails th, #resodetails th {\n  font-weight: normal;\n  text-align: right;\n  width: 62px;\n  padding:0px;\n  padding-right:4px;\n  padding-left:4px;\n}\n\n#randdetails th + th, #resodetails th + th {\n  text-align: left;\n  padding-right: 4px;\n  padding-left: 4px;\n}\n\n#randdetails td:first-child, #resodetails td:first-child {\n  text-align: right;\n  padding-left: 2px;\n}\n\n#randdetails td:last-child, #resodetails td:last-child {\n  text-align: left;\n  padding-right: 2px;\n}\n\n\n#randdetails {\n  margin-top: 4px;\n  margin-bottom: 5px;\n}\n\n\n#randdetails tt {\n  font-family: inherit;\n  cursor: help;\n}\n\n/* resonators */\n#resodetails {\n  margin-bottom: 0px;\n}\n\n.meter {\n  background: #000;\n  cursor: help;\n  display: inline-block;\n  height: 18px;\n  padding: 1px;\n  width: 100%;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  position: relative;\n  left: 0;\n  top: 0;\n}\n\n.meter.north {\n  overflow: hidden;\n}\n.meter.north:before {\n  content: "";\n  background-color: red;\n  border: 1px solid #000000;\n  border-radius: 100%;\n  display: block;\n  height: 6px;\n  width: 6px;\n  left: 50%;\n  top: -3px;\n  margin-left: -4px;\n  position: absolute;\n}\n\n.meter span {\n  display: block;\n  height: 14px;\n}\n\n.meter-level {\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: -2px;\n  text-shadow: 0.0em 0.0em 0.3em #808080;\n  text-align: center;\n  word-spacing: 4px; /* to leave some space for the north indicator */\n}\n\n/* links below resos */\n\n.linkdetails {\n  margin-bottom: 0px;\n  text-align: center;\n}\n\n.linkdetails aside {\n  display: inline-block;\n  white-space: nowrap;\n  margin-left: 5px;\n  margin-right: 5px;\n}\n\n#toolbox {\n  text-align: left;    /* centre didn\'t look as nice here as it did above in .linkdetails */\n}\n\n#toolbox > a {\n  margin-left: 5px;\n  margin-right: 5px;\n  white-space: nowrap;\n  display: inline-block;\n}\n\n/* a common portal display takes this much space (prevents moving\n * content when first selecting a portal) */\n\n#portaldetails {\n  min-height: 63px;\n  position: relative; /* so the below \'#portaldetails .close\' is relative to this */\n}\n\n#portaldetails .close {\n  position: absolute;\n  top: -2px;\n  right: 2px;\n  cursor: pointer;\n  color: #FFCE00;\n  font-size: 16px;\n}\n\n/* update status */\n#updatestatus {\n  background-color: rgba(8, 48, 78, 0.9);\n  border-bottom: 0;\n  border-top: 1px solid #20A8B1;\n  border-left: 1px solid #20A8B1;\n  bottom: 0;\n  color: #ffce00;\n  font-size:13px;\n  padding: 4px;\n  position: fixed;\n  right: 0;\n  z-index: 3002;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n#updatestatus .map {\n  margin-left: 8px;\n}\n\n#loadlevel {\n  background: #FFF;\n  color: #000000;\n  display: inline-block;\n  min-width: 1.8em;\n  border: 1px solid #20A8B1;\n  border-width: 0 1px;\n  margin: -4px 0;\n  padding: 4px 0.2em;\n}\n\n/* Dialogs\n */\n.ui-tooltip, .ui-dialog {\n  position: absolute;\n  z-index: 9999;\n  background-color: rgba(8, 48, 78, 0.9);\n  border: 1px solid #20A8B1;\n  color: #eee;\n  font-size: 13px;\n  line-height: 15px;\n  padding: 2px 4px;\n}\n\n.ui-tooltip {\n  max-width: 300px;\n}\n\n.ui-widget-overlay {\n  height: 100%;\n  left: 0;\n  position: fixed;\n  top: 0;\n  width: 100%;\n  z-index: 10000;\n  background:  #444;\n  opacity: 0.6;\n}\n\n.ui-modal {\n  z-index: 10001 !important;\n}\n\n.ui-tooltip {\n  z-index: 10002 !important;\n}\n\n.ui-tooltip, .ui-dialog a {\n  color: #FFCE00;\n}\n\n.ui-dialog {\n  padding: 0;\n  border-radius: 2px;\n}\n\n.ui-dialog-modal .ui-dialog-titlebar-close {\n  display: none;\n}\n\n.ui-dialog-titlebar {\n  font-size: 13px;\n  line-height: 15px;\n  text-align: center;\n  padding: 4px;\n  background-color: rgba(8, 60, 78, 0.9);\n  min-width: 250px;\n}\n\n.ui-dialog-title {\n  padding: 2px;\n  font-weight: bold;\n}\n\n.ui-dialog-title-active {\n  color: #ffce00;\n}\n\n.ui-dialog-title-inactive {\n  color: #ffffff;\n}\n\n.ui-dialog-titlebar-button {\n  position: absolute;\n  display: table-cell;\n  vertical-align: middle;\n  text-align: center;\n  width: 17px;\n  height: 17px;\n  top: 3px;\n  cursor: pointer;\n  border: 1px solid rgb(32, 168, 177);\n  background-color: rgba(0, 0, 0, 0);\n  padding: 0;\n}\n\n.ui-dialog-titlebar-button:active {\n  background-color: rgb(32, 168, 177);\n}\n\n.ui-dialog-titlebar-button-close {\n  right: 4px;\n}\n\n.ui-dialog-titlebar-button-collapse {\n  right: 25px;\n}\n\n.ui-dialog-titlebar-button-collapse-expanded {\n  /* For future changes */\n}\n\n.ui-dialog-titlebar-button-collapse-collapsed {\n  background-color: rgb(32, 168, 177);\n}\n\n.ui-dialog-titlebar-button-collapse::after,\n.ui-dialog-titlebar-button-close::after,\n.ui-dialog-titlebar-button-close::before {\n  content: "";\n  position: absolute;\n  top: 3px;\n  left: 50%;\n  width: 11px;\n  margin-left: -6px;\n  height: 0;\n  border-top: 2px solid rgb(32, 168, 177);\n}\n.ui-dialog-titlebar-button-close::after {\n  transform: translateY(3.5px) rotate(45deg);\n}\n.ui-dialog-titlebar-button-close::before {\n  transform: translateY(3.5px) rotate(-45deg);\n}\n.ui-dialog-titlebar-button.ui-state-active::after,\n.ui-dialog-titlebar-button.ui-state-active::before,\n.ui-dialog-titlebar-button.ui-dialog-titlebar-button-collapse-collapsed::after,\n.ui-dialog-titlebar-button.ui-dialog-titlebar-button-collapse-collapsed::before,\n.ui-dialog-titlebar-button:active::after,\n.ui-dialog-titlebar-button:active::before {\n  border-top-color: rgba(8, 60, 78, 0.9);\n}\n\n.ui-dialog-content {\n  padding: 12px;\n  overflow-y: auto;\n  overflow-x: hidden;\n  max-height: 600px !important;\n  max-width: 700px !important;\n  position: relative;\n}\n\n.ui-dialog-content-hidden {\n  display: none !important;\n}\n\n.ui-dialog-buttonpane {\n  padding: 6px;\n  border-top: 1px solid #20A8B1;\n}\n\n.ui-dialog-buttonset {\n  text-align: right;\n}\n\n.ui-dialog-buttonset button,\n.ui-dialog-content button {\n  padding: 2px;\n  min-width: 40px;\n  color: #FFCE00;\n  border: 1px solid #FFCE00;\n  background-color: rgba(8, 48, 78, 0.9);\n}\n\n.ui-dialog-buttonset button:hover {\n  text-decoration: underline;\n}\n\n.ui-dialog-aboutIITC {\n  width: auto !important;\n  min-width: 400px !important;\n  max-width: 600px !important;\n}\n\ntd {\n  padding: 0;\n  vertical-align: top;\n}\n\ntd + td {\n  padding-left: 4px;\n}\n\n#qrcode > canvas {\n  border: 8px solid white;\n}\n\n/* redeem results *****************************************************/\n.redeemReward {\n  font-family: Inconsolata, Consolas, Menlo, "Courier New", monospace;\n  list-style-type: none;\n  padding: 0;\n  font-size: 14px;\n}\n.redeemReward .itemlevel {\n  font-weight: bold;\n  text-shadow: 0 0 1px #000; /* L8 is hard to read on blue background */\n}\n/*\n.redeem-result-table {\n  font-size: 14px;\n  table-layout: fixed;\n}\n\n.redeem-result tr > td:first-child {\n  width: 50px;\n  text-align: right;\n}\n\n.redeem-result-html {\n  font-family: Inconsolata, Consolas, Menlo, "Courier New", monospace;\n}\n*/\n\n.pl_nudge_date {\n  background-color: #724510;\n  border-left: 1px solid #ffd652;\n  border-bottom: 1px solid #ffd652;\n  border-top: 1px solid #ffd652;\n  color: #ffd652;\n  display: inline-block;\n  float: left;\n  height: 18px;\n  text-align: center;\n}\n\n.pl_nudge_pointy_spacer {\n  background: no-repeat url(//commondatastorage.googleapis.com/ingress.com/img/nudge_pointy.png);\n  display: inline-block;\n  float: left;\n  height: 20px;\n  left: 47px;\n  width: 5px;\n}\n\n.pl_nudge_player {\n  cursor: pointer;\n}\n\n.pl_nudge_me {\n  color: #ffd652;\n}\n\n.RESISTANCE {\n  color: #00c2ff;\n}\n\n.ALIENS, .ENLIGHTENED {\n  color: #28f428;\n}\n\n#portal_highlight_select {\n  position: absolute;\n  top:5px;\n  left:10px;\n  z-index: 2500;\n  font-size:11px;\n  background-color:#0E3C46;\n  color:#ffce00;\n  \n}\n\n\n\n.portal_details th, .portal_details td {\n  vertical-align: top;\n  text-align: left;\n}\n\n.portal_details th {\n  white-space: nowrap;\n  padding-right: 1em;\n}\n\n.portal_details tr.padding-top th, .portal_details tr.padding-top td {\n  padding-top: 0.7em;\n}\n\n#play_button {\n  display: none;\n}\n\n\n/** artifact dialog *****************/\ntable.artifact tr > * {\n  background: rgba(8, 48, 78, 0.9);\n}\n\ntable.artifact td.info {\n  min-width: 110px; /* min-width for info column, to ensure really long portal names don\'t crowd things out */\n}\n\ntable.artifact .portal {\n  min-width: 200px; /* min-width for portal names, to ensure really long lists of artifacts don\'t crowd names out */\n}\n\n\n/* leaflet popups - restyle to match the theme of IITC */\n#map .leaflet-popup {\n  pointer-events: none;\n}\n\n#map .leaflet-popup-content-wrapper {\n  border-radius: 0px;\n  -webkit-border-radius: 0px;\n  border: 1px solid #20A8B1;\n  background: #0e3d4e;\n  pointer-events: auto;\n}\n\n#map .leaflet-popup-content {\n  color: #ffce00;\n  margin: 5px 8px;\n}\n\n#map .leaflet-popup-close-button {\n  padding: 2px 1px 0 0;\n  font-size: 12px;\n  line-height: 8px;\n  width: 10px;\n  height: 10px;\n  pointer-events: auto;\n}\n\n\n#map .leaflet-popup-tip {\n  /* change the tip from an arrow to a simple line */\n  background: #20A8B1;\n  width: 1px;\n  height: 20px;\n  padding: 0;\n  margin: 0 0 0 20px;\n  -webkit-transform: none;\n  -moz-transform: none;\n  -ms-transform: none;\n  -o-transform: none;\n  transform: none;\n}\n\n\n/* misc */\n\n.no-pointer-events {\n  pointer-events: none;\n}\n\n\n.layer_off_warning {\n  color: #FFCE00;\n  margin: 8px;\n  text-align: center;\n}\n\n/* region scores */\n.cellscore .ui-accordion-header, .cellscore .ui-accordion-content {\n	border: 1px solid #20a8b1;\n	margin-top: -1px;\n	display: block;\n}\n.cellscore .ui-accordion-header {\n	color: #ffce00;\n	outline: none\n}\n.cellscore .ui-accordion-header:before {\n	font-size: 18px;\n	margin-right: 2px;\n	content: "⊞";\n}\n.cellscore .ui-accordion-header-active:before {\n	content: "⊟";\n}\ng.checkpoint:hover circle {\n  fill-opacity: 1;\n  stroke-width: 2px;\n}\n.checkpoint_table {\n	border-collapse: collapse;\n}\n.checkpoint_table td {\n	text-align: right;\n	padding-left: 10px;\n}\n\n.text-overflow-ellipsis {\n	display: inline-block;\n	overflow: hidden;\n	white-space: nowrap;\n	text-overflow: ellipsis;\n	vertical-align: text-bottom;\n	width: 100%;\n}\n\n</style>'
+  + '<style>/* general rules ******************************************************/\n\n/* for printing directly from the browser, hide all UI components\n * NOTE: @media needs to be first?\n */\n@media print {\n  .leaflet-control-container { display: none !important; }\n  #chatcontrols, #chat, #chatinput { display: none !important; }\n  #sidebartoggle, #sidebar { display: none !important; }\n  #updatestatus { display: none !important; }\n  #portal_highlight_select { display: none !important; }\n}\n\n\nhtml, body, #map {\n  height: 100%;\n  width: 100%;\n  overflow: hidden; /* workaround for #373 */\n  background: #0e3d4e;\n}\n\n\nbody {\n  font-size: 14px;\n  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;\n  margin: 0;\n}\n\n#scrollwrapper {\n  overflow-x: hidden;\n  overflow-y: auto;\n  position: fixed;\n  right: -38px;\n  top: 0;\n  width: 340px;\n  bottom: 45px;\n  z-index: 1001;\n  pointer-events: none;\n}\n\n#sidebar {\n  background-color: rgba(8, 48, 78, 0.9);\n  border-left: 1px solid #20A8B1;\n  color: #888;\n  position: relative;\n  left: 0;\n  top: 0;\n  max-height: 100%;\n  overflow-y:scroll;\n  overflow-x:hidden;\n  z-index: 3000;\n  pointer-events: auto;\n}\n\n#sidebartoggle {\n  display: block;\n  padding: 20px 5px;\n  margin-top: -31px; /* -(toggle height / 2) */\n  line-height: 10px;\n  position: absolute;\n  top: 108px;\n  z-index: 3001;\n  background-color: rgba(8, 48, 78, 0.9);\n  color: #FFCE00;\n  border: 1px solid #20A8B1;\n  border-right: none;\n  border-radius: 5px 0 0 5px;\n  text-decoration: none;\n  right: -50px; /* overwritten later by the script with SIDEBAR_WIDTH */\n}\n\n.enl {\n  color: #03fe03 !important;\n}\n\n.res {\n  color: #00c5ff !important;\n}\n\n.none {\n  color: #fff;\n}\n\n.nickname {\n  cursor: pointer !important;\n}\n\na {\n  color: #ffce00;\n  cursor: pointer;\n  text-decoration: none;\n}\n\na:hover {\n  text-decoration: underline;\n}\n\n/* map display, required because GMaps uses a high z-index which is\n * normally above Leaflet’s vector pane */\n.leaflet-map-pane {\n  z-index: 1000;\n}\n\n/* leaflet layer chooser, when opened, is above other panels */\n/* doesn\'t actually work :( - left commented out for reference\n.leaflet-control-layers-expanded {\n  z-index: 9999 !important;\n}\n*/\n\n\n.leaflet-control-layers-overlays label.disabled {\n  text-decoration: line-through;\n  cursor: help;\n}\n\n\n\n/* base layer selection - first column */\n.leaflet-control-layers-base {\n  float: left;\n  overflow-y: auto;\n  max-height: 600px;\n}\n\n/* overlays layer selection - 2nd column */\n.leaflet-control-layers-overlays {\n  float: left;\n  margin-left: 8px;\n  border-left: 1px solid #DDDDDD;\n  padding-left: 8px;\n  overflow-y: auto;\n  max-height: 600px;\n}\n\n/* hide the usual separator */\n.leaflet-control-layers-separator {\n  display: none;\n}\n\n\n\n.help {\n  cursor: help;\n}\n\n.toggle {\n  display: block;\n  height: 0;\n  width: 0;\n}\n\n/* field mu count */\n.fieldmu {\n  color: #FFCE00;\n  font-size: 13px;\n  font-family: Roboto, "Helvetica Neue", Helvetica, sans-serif; /*override leaflet-container */\n  text-align: center;\n  text-shadow: 0 0 0.2em black, 0 0 0.2em black, 0 0 0.2em black;\n  pointer-events: none;\n}\n\n\n/* chat ***************************************************************/\n\n#chatcontrols {\n  color: #FFCE00;\n  background: rgba(8, 48, 78, 0.9);\n  position: absolute;\n  left: 0;\n  z-index: 3000;\n  height: 26px;\n  padding-left:1px;\n}\n\n#chatcontrols.expand {\n  top: 0;\n  bottom: auto;\n}\n\n#chatcontrols a {\n  margin-left: -1px;\n  display: inline-block;\n  width: 94px;\n  text-align: center;\n  height: 24px;\n  line-height: 24px;\n  border: 1px solid #20A8B1;\n  vertical-align: top;\n}\n\n#chatcontrols a:first-child {\n  letter-spacing:-1px;\n  text-decoration: none !important;\n}\n\n#chatcontrols a.active {\n  border-color: #FFCE00;\n  border-bottom-width:0px;\n  font-weight:bold;\n  background: rgb(8, 48, 78);\n}\n\n#chatcontrols a.active + a {\n  border-left-color: #FFCE00\n}\n\n\n#chatcontrols .toggle {\n  border-left: 10px solid transparent;\n  border-right: 10px solid transparent;\n  margin: 6px auto auto;\n}\n\n#chatcontrols .expand {\n  border-bottom: 10px solid #FFCE00;\n}\n\n#chatcontrols .shrink {\n  border-top: 10px solid #FFCE00;\n}\n\n#chatcontrols .loading {\n  background-color: rgba(255,0,0,0.3);\n  -webkit-animation: chatloading 1.2s infinite linear;\n  -moz-animation: chatloading 1.2s infinite linear;\n  animation: chatloading 1.2s infinite linear;\n}\n\n@-webkit-keyframes chatloading {\n    0% { background-color: rgba(255,0,0,0.4) }\n   50% { background-color: rgba(255,0,0,0.1) }\n  100% { background-color: rgba(255,0,0,0.4) }\n}\n\n@-moz-keyframes chatloading {\n    0% { background-color: rgba(255,0,0,0.4) }\n   50% { background-color: rgba(255,0,0,0.1) }\n  100% { background-color: rgba(255,0,0,0.4) }\n}\n\n@keyframes chatloading {\n    0% { background-color: rgba(255,0,0,0.4) }\n   50% { background-color: rgba(255,0,0,0.1) }\n  100% { background-color: rgba(255,0,0,0.4) }\n}\n\n\n\n#chat {\n  position: absolute;\n  width: 708px;\n  bottom: 23px;\n  left: 0;\n  z-index: 3000;\n  background: rgba(8, 48, 78, 0.9);\n  line-height: 15px;\n  color: #eee;\n  border: 1px solid #20A8B1;\n  border-bottom: 0;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\nem {\n  color: red;\n  font-style: normal;\n}\n\n#chat.expand {\n  height:auto;\n  top: 25px;\n}\n\n\n#chat > div {\n  overflow-x:hidden;\n  overflow-y:scroll;\n  height: 100%;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  padding: 2px;\n  position:relative;\n}\n\n#chat table, #chatinput table {\n  width: 100%;\n  table-layout: fixed;\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n\n#chatinput table {\n  height: 100%;\n}\n\n#chat td, #chatinput td {\n  font-size: 13px;\n  vertical-align: top;\n  padding-bottom: 3px;\n}\n\n/* time */\n#chat td:first-child, #chatinput td:first-child {\n  width: 44px;\n  overflow: hidden;\n  padding-left: 2px;\n  color: #bbb;\n  white-space: nowrap;\n}\n\n#chat time {\n  cursor: help;\n}\n\n/* nick */\n#chat td:nth-child(2), #chatinput td:nth-child(2) {\n  width: 91px;\n  overflow: hidden;\n  padding-left: 2px;\n  white-space: nowrap;\n}\n\n#chat td .system_narrowcast {\n  color: #f66 !important;\n}\n\nmark {\n  background: transparent;\n}\n\n.invisep {\n  display: inline-block;\n  width: 1px;\n  height: 1px;\n  overflow:hidden;\n  color: transparent;\n}\n\n/* divider */\nsummary {\n  color: #bbb;\n  display: inline-block;\n  height: 16px;\n  overflow: hidden;\n  padding: 0 2px;\n  white-space: nowrap;\n  width: 100%;\n}\n\n#chatinput {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  padding: 0 2px;\n  background: rgba(8, 48, 78, 0.9);\n  width: 708px;\n  height: 23px;\n  border: 1px solid #20A8B1;\n  z-index: 3001;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n#chatinput td {\n  padding-bottom: 1px;\n  vertical-align: middle;\n}\n\n\n#chatinput input {\n  background: transparent;\n  color: #EEEEEE;\n  width: 100%;\n  height: 100%;\n  padding:3px 4px 1px 4px;\n}\n\n\n\n/* sidebar ************************************************************/\n\n#sidebar > * {\n  border-bottom: 1px solid #20A8B1;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n\n\n#sidebartoggle .toggle {\n  border-bottom: 10px solid transparent;\n  border-top: 10px solid transparent;\n}\n\n#sidebartoggle .open {\n  border-right: 10px solid #FFCE00;\n}\n\n#sidebartoggle .close {\n  border-left: 10px solid #FFCE00;\n}\n\n/* player stats */\n#playerstat {\n  height: 30px;\n}\n\nh2 {\n  color: #ffce00;\n  font-size: 21px;\n  padding: 0 4px;\n  margin: 0;\n  cursor:help;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  width: 100%;\n}\n\nh2 #name {\n  font-weight: 300;\n  display: inline-block;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: top;\n  white-space: nowrap;\n  width: 205px;\n  position: relative;\n}\n\nh2 #stats {\n  float: right;\n  height: 100%;\n  overflow: hidden;\n}\n\n#signout {\n  font-size: 12px;\n  font-weight: normal;\n  line-height: 29px;\n  padding: 0 4px;\n  position: absolute;\n  top: 0;\n  right: 0;\n  background-color: rgba(8, 48, 78, 0.5);\n  display: none; /* starts hidden */\n}\n#name:hover #signout {\n  display: block;\n}\n\nh2 sup, h2 sub {\n  display: block;\n  font-size: 11px;\n  margin-bottom: -2px;\n}\n\n\n/* gamestats */\n#gamestat {\n  height: 22px;\n}\n\n#gamestat span {\n  display: block;\n  float: left;\n  font-weight: bold;\n  cursor:help;\n  height: 21px;\n  line-height: 22px;\n}\n\n#gamestat .res {\n  background: #005684;\n  text-align: right;\n}\n\n#gamestat .enl {\n  background: #017f01;\n}\n\n\n/* search input, and others */\ninput:not([type]), .input,\ninput[type="text"], input[type="password"],\ninput[type="number"], input[type="email"],\ninput[type="search"], input[type="url"] {\n  background-color: rgba(0, 0, 0, 0.3);\n  color: #ffce00;\n  height: 24px;\n  padding:0px 4px 0px 4px;\n  font-size: 12px;\n  border:0;\n  font-family:inherit;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n#searchwrapper {\n  position: relative;\n}\n#search {\n  width: 100%;\n  padding-right: 24px;\n}\n#buttongeolocation {\n  position: absolute;\n  top: 2px;\n  right: 2px;\n  cursor: pointer;\n}\n#searchwrapper h3 {\n  font-size: 1em;\n  height: auto;\n  cursor: pointer;\n}\n.searchquery {\n  max-height: 25em;\n  overflow-y: auto;\n}\n#searchwrapper .ui-accordion-header::before {\n  font-size: 18px;\n  margin-right: 2px;\n  font-weight: normal;\n  line-height: 1em;\n  content: "⊞";\n}\n#searchwrapper .ui-accordion-header-active::before {\n  content: "⊟";\n}\n#searchwrapper .ui-accordion-content {\n  margin: 0;\n  overflow: hidden;\n}\n#searchwrapper ul {\n  padding-left: 14px;\n}\n#searchwrapper li {\n  cursor: pointer;\n}\n#searchwrapper li a {\n  margin-left: -14px;\n  padding-left: 14px;\n  background-position: 1px center;\n  background-repeat: no-repeat;\n  background-size: 12px 12px;\n}\n#searchwrapper li:focus a, #searchwrapper li:hover a {\n  text-decoration: underline;\n}\n#searchwrapper li em {\n  color: #ccc;\n  font-size: 0.9em;\n}\n\n::-webkit-input-placeholder {\n  font-style: italic;\n}\n\n:-moz-placeholder {\n  font-style: italic;\n}\n\n::-moz-placeholder {\n  font-style: italic;\n}\n\n.leaflet-control-layers input {\n  height: auto;\n  padding: 0;\n}\n\n\n/* portal title and image */\nh3 {\n  font-size: 16px;\n  padding: 0 4px;\n  margin:0;\n  height: 23px;\n  width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n.imgpreview {\n  height: 190px;\n  background: no-repeat center center;\n  background-size: contain;\n  cursor: help;\n  overflow: hidden;\n  position: relative;\n}\n\n.imgpreview img.hide {\n  display: none;\n}\n\n.imgpreview .portalDetails {\n  display: none;\n}\n\n#level {\n  font-size: 40px;\n  text-shadow: -1px -1px #000, 1px -1px #000, -1px 1px #000, 1px 1px #000, 0 0 5px #fff;\n  display: block;\n  margin-right: 15px;\n  text-align:right;\n  float: right;\n}\n\n/* portal mods */\n.mods {\n  margin: 3px auto 1px auto;\n  width: 296px;\n  height: 67px;\n  text-align: center;\n}\n\n.mods span {\n  background-color: rgba(0, 0, 0, 0.3);\n  /* can’t use inline-block because Webkit\'s implementation is buggy and\n   * introduces additional margins in random cases. No clear necessary,\n   * as that’s solved by setting height on .mods. */\n  display: block;\n  float:left;\n  height: 63px;\n  margin: 0 2px;\n  overflow: hidden;\n  padding: 2px;\n  text-align: center;\n  width: 63px;\n  cursor:help;\n  border: 1px solid #666;\n}\n\n.mods span:not([title]) {\n  cursor: auto;\n}\n\n.res .mods span, .res .meter {\n  border: 1px solid #0076b6;\n}\n.enl .mods span, .enl .meter {\n  border: 1px solid #017f01;\n}\n\n/* random details, resonator details */\n#randdetails, #resodetails {\n  width: 100%;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  padding: 0 4px;\n  table-layout: fixed;\n  border-spacing: 0m;\n  border-collapse: collapse;\n}\n\n#randdetails td, #resodetails td {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: top;\n  white-space: nowrap;\n  width: 50%;\n}\n\n#randdetails th, #resodetails th {\n  font-weight: normal;\n  text-align: right;\n  width: 62px;\n  padding:0px;\n  padding-right:4px;\n  padding-left:4px;\n}\n\n#randdetails th + th, #resodetails th + th {\n  text-align: left;\n  padding-right: 4px;\n  padding-left: 4px;\n}\n\n#randdetails td:first-child, #resodetails td:first-child {\n  text-align: right;\n  padding-left: 2px;\n}\n\n#randdetails td:last-child, #resodetails td:last-child {\n  text-align: left;\n  padding-right: 2px;\n}\n\n\n#randdetails {\n  margin-top: 4px;\n  margin-bottom: 5px;\n}\n\n\n#randdetails tt {\n  font-family: inherit;\n  cursor: help;\n}\n\n#artifact_target, #artifact_fragments {\n  margin-top: 4px;\n  margin-bottom: 4px;\n\n  margin-left: 8px;\n  margin-right: 8px;\n}\n\n\n/* resonators */\n#resodetails {\n  margin-bottom: 0px;\n}\n\n.meter {\n  background: #000;\n  cursor: help;\n  display: inline-block;\n  height: 18px;\n  padding: 1px;\n  width: 100%;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  position: relative;\n  left: 0;\n  top: 0;\n}\n\n.meter.north {\n  overflow: hidden;\n}\n.meter.north:before {\n  content: "";\n  background-color: red;\n  border: 1px solid #000000;\n  border-radius: 100%;\n  display: block;\n  height: 6px;\n  width: 6px;\n  left: 50%;\n  top: -3px;\n  margin-left: -4px;\n  position: absolute;\n}\n\n.meter span {\n  display: block;\n  height: 14px;\n}\n\n.meter-level {\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: -2px;\n  text-shadow: 0.0em 0.0em 0.3em #808080;\n  text-align: center;\n  word-spacing: 4px; /* to leave some space for the north indicator */\n}\n\n/* links below resos */\n\n.linkdetails {\n  margin-bottom: 0px;\n  text-align: center;\n}\n\n.linkdetails aside {\n  display: inline-block;\n  white-space: nowrap;\n  margin-left: 5px;\n  margin-right: 5px;\n}\n\n#toolbox {\n  text-align: left;    /* centre didn\'t look as nice here as it did above in .linkdetails */\n}\n\n#toolbox > a {\n  margin-left: 5px;\n  margin-right: 5px;\n  white-space: nowrap;\n  display: inline-block;\n}\n\n/* a common portal display takes this much space (prevents moving\n * content when first selecting a portal) */\n\n#portaldetails {\n  min-height: 63px;\n  position: relative; /* so the below \'#portaldetails .close\' is relative to this */\n}\n\n#portaldetails .close {\n  position: absolute;\n  top: -2px;\n  right: 2px;\n  cursor: pointer;\n  color: #FFCE00;\n  font-size: 16px;\n}\n\n/* update status */\n#updatestatus {\n  background-color: rgba(8, 48, 78, 0.9);\n  border-bottom: 0;\n  border-top: 1px solid #20A8B1;\n  border-left: 1px solid #20A8B1;\n  bottom: 0;\n  color: #ffce00;\n  font-size:13px;\n  padding: 4px;\n  position: fixed;\n  right: 0;\n  z-index: 3002;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n#updatestatus .map {\n  margin-left: 8px;\n}\n\n#loadlevel {\n  background: #FFF;\n  color: #000000;\n  display: inline-block;\n  min-width: 1.8em;\n  border: 1px solid #20A8B1;\n  border-width: 0 1px;\n  margin: -4px 0;\n  padding: 4px 0.2em;\n}\n\n/* Dialogs\n */\n.ui-tooltip, .ui-dialog {\n  position: absolute;\n  z-index: 9999;\n  background-color: rgba(8, 48, 78, 0.9);\n  border: 1px solid #20A8B1;\n  color: #eee;\n  font-size: 13px;\n  line-height: 15px;\n  padding: 2px 4px;\n}\n\n.ui-tooltip {\n  max-width: 300px;\n}\n\n.ui-widget-overlay {\n  height: 100%;\n  left: 0;\n  position: fixed;\n  top: 0;\n  width: 100%;\n  z-index: 10000;\n  background:  #444;\n  opacity: 0.6;\n}\n\n.ui-modal {\n  z-index: 10001 !important;\n}\n\n.ui-tooltip {\n  z-index: 10002 !important;\n}\n\n.ui-tooltip, .ui-dialog a {\n  color: #FFCE00;\n}\n\n.ui-dialog {\n  padding: 0;\n  border-radius: 2px;\n}\n\n.ui-dialog-modal .ui-dialog-titlebar-close {\n  display: none;\n}\n\n.ui-dialog-titlebar {\n  font-size: 13px;\n  line-height: 15px;\n  text-align: center;\n  padding: 4px;\n  background-color: rgba(8, 60, 78, 0.9);\n  min-width: 250px;\n}\n\n.ui-dialog-title {\n  padding: 2px;\n  font-weight: bold;\n}\n\n.ui-dialog-title-active {\n  color: #ffce00;\n}\n\n.ui-dialog-title-inactive {\n  color: #ffffff;\n}\n\n.ui-dialog-titlebar-button {\n  position: absolute;\n  display: table-cell;\n  vertical-align: middle;\n  text-align: center;\n  width: 17px;\n  height: 17px;\n  top: 3px;\n  cursor: pointer;\n  border: 1px solid rgb(32, 168, 177);\n  background-color: rgba(0, 0, 0, 0);\n  padding: 0;\n}\n\n.ui-dialog-titlebar-button:active {\n  background-color: rgb(32, 168, 177);\n}\n\n.ui-dialog-titlebar-button-close {\n  right: 4px;\n}\n\n.ui-dialog-titlebar-button-collapse {\n  right: 25px;\n}\n\n.ui-dialog-titlebar-button-collapse-expanded {\n  /* For future changes */\n}\n\n.ui-dialog-titlebar-button-collapse-collapsed {\n  background-color: rgb(32, 168, 177);\n}\n\n.ui-dialog-titlebar-button-collapse::after,\n.ui-dialog-titlebar-button-close::after,\n.ui-dialog-titlebar-button-close::before {\n  content: "";\n  position: absolute;\n  top: 3px;\n  left: 50%;\n  width: 11px;\n  margin-left: -6px;\n  height: 0;\n  border-top: 2px solid rgb(32, 168, 177);\n}\n.ui-dialog-titlebar-button-close::after {\n  transform: translateY(3.5px) rotate(45deg);\n}\n.ui-dialog-titlebar-button-close::before {\n  transform: translateY(3.5px) rotate(-45deg);\n}\n.ui-dialog-titlebar-button.ui-state-active::after,\n.ui-dialog-titlebar-button.ui-state-active::before,\n.ui-dialog-titlebar-button.ui-dialog-titlebar-button-collapse-collapsed::after,\n.ui-dialog-titlebar-button.ui-dialog-titlebar-button-collapse-collapsed::before,\n.ui-dialog-titlebar-button:active::after,\n.ui-dialog-titlebar-button:active::before {\n  border-top-color: rgba(8, 60, 78, 0.9);\n}\n\n.ui-dialog-content {\n  padding: 12px;\n  overflow-y: auto;\n  overflow-x: hidden;\n  max-height: 600px !important;\n  max-width: 700px !important;\n  position: relative;\n}\n\n.ui-dialog-content-hidden {\n  display: none !important;\n}\n\n.ui-dialog-buttonpane {\n  padding: 6px;\n  border-top: 1px solid #20A8B1;\n}\n\n.ui-dialog-buttonset {\n  text-align: right;\n}\n\n.ui-dialog-buttonset button,\n.ui-dialog-content button {\n  padding: 2px;\n  min-width: 40px;\n  color: #FFCE00;\n  border: 1px solid #FFCE00;\n  background-color: rgba(8, 48, 78, 0.9);\n}\n\n.ui-dialog-buttonset button:hover {\n  text-decoration: underline;\n}\n\n.ui-dialog-aboutIITC {\n  width: auto !important;\n  min-width: 400px !important;\n  max-width: 600px !important;\n}\n\ntd {\n  padding: 0;\n  vertical-align: top;\n}\n\ntd + td {\n  padding-left: 4px;\n}\n\n#qrcode > canvas {\n  border: 8px solid white;\n}\n\n/* redeem results *****************************************************/\n.redeemReward {\n  font-family: Inconsolata, Consolas, Menlo, "Courier New", monospace;\n  list-style-type: none;\n  padding: 0;\n  font-size: 14px;\n}\n.redeemReward .itemlevel {\n  font-weight: bold;\n  text-shadow: 0 0 1px #000; /* L8 is hard to read on blue background */\n}\n/*\n.redeem-result-table {\n  font-size: 14px;\n  table-layout: fixed;\n}\n\n.redeem-result tr > td:first-child {\n  width: 50px;\n  text-align: right;\n}\n\n.redeem-result-html {\n  font-family: Inconsolata, Consolas, Menlo, "Courier New", monospace;\n}\n*/\n\n.pl_nudge_date {\n  background-color: #724510;\n  border-left: 1px solid #ffd652;\n  border-bottom: 1px solid #ffd652;\n  border-top: 1px solid #ffd652;\n  color: #ffd652;\n  display: inline-block;\n  float: left;\n  height: 18px;\n  text-align: center;\n}\n\n.pl_nudge_pointy_spacer {\n  background: no-repeat url(//commondatastorage.googleapis.com/ingress.com/img/nudge_pointy.png);\n  display: inline-block;\n  float: left;\n  height: 20px;\n  left: 47px;\n  width: 5px;\n}\n\n.pl_nudge_player {\n  cursor: pointer;\n}\n\n.pl_nudge_me {\n  color: #ffd652;\n}\n\n.RESISTANCE {\n  color: #00c2ff;\n}\n\n.ALIENS, .ENLIGHTENED {\n  color: #28f428;\n}\n\n#portal_highlight_select {\n  position: absolute;\n  top:5px;\n  left:10px;\n  z-index: 2500;\n  font-size:11px;\n  background-color:#0E3C46;\n  color:#ffce00;\n  \n}\n\n\n\n.portal_details th, .portal_details td {\n  vertical-align: top;\n  text-align: left;\n}\n\n.portal_details th {\n  white-space: nowrap;\n  padding-right: 1em;\n}\n\n.portal_details tr.padding-top th, .portal_details tr.padding-top td {\n  padding-top: 0.7em;\n}\n\n#play_button {\n  display: none;\n}\n\n\n/** artifact dialog *****************/\ntable.artifact tr > * {\n  background: rgba(8, 48, 78, 0.9);\n}\n\ntable.artifact td.info {\n  min-width: 110px; /* min-width for info column, to ensure really long portal names don\'t crowd things out */\n}\n\ntable.artifact .portal {\n  min-width: 200px; /* min-width for portal names, to ensure really long lists of artifacts don\'t crowd names out */\n}\n\n\n/* leaflet popups - restyle to match the theme of IITC */\n#map .leaflet-popup {\n  pointer-events: none;\n}\n\n#map .leaflet-popup-content-wrapper {\n  border-radius: 0px;\n  -webkit-border-radius: 0px;\n  border: 1px solid #20A8B1;\n  background: #0e3d4e;\n  pointer-events: auto;\n}\n\n#map .leaflet-popup-content {\n  color: #ffce00;\n  margin: 5px 8px;\n}\n\n#map .leaflet-popup-close-button {\n  padding: 2px 1px 0 0;\n  font-size: 12px;\n  line-height: 8px;\n  width: 10px;\n  height: 10px;\n  pointer-events: auto;\n}\n\n\n#map .leaflet-popup-tip {\n  /* change the tip from an arrow to a simple line */\n  background: #20A8B1;\n  width: 1px;\n  height: 20px;\n  padding: 0;\n  margin: 0 0 0 20px;\n  -webkit-transform: none;\n  -moz-transform: none;\n  -ms-transform: none;\n  -o-transform: none;\n  transform: none;\n}\n\n\n/* misc */\n\n.no-pointer-events {\n  pointer-events: none;\n}\n\n\n.layer_off_warning {\n  color: #FFCE00;\n  margin: 8px;\n  text-align: center;\n}\n\n/* region scores */\n.cellscore .ui-accordion-header, .cellscore .ui-accordion-content {\n	border: 1px solid #20a8b1;\n	margin-top: -1px;\n	display: block;\n}\n.cellscore .ui-accordion-header {\n	color: #ffce00;\n	outline: none\n}\n.cellscore .ui-accordion-header:before {\n	font-size: 18px;\n	margin-right: 2px;\n	content: "⊞";\n}\n.cellscore .ui-accordion-header-active:before {\n	content: "⊟";\n}\ng.checkpoint:hover circle {\n  fill-opacity: 1;\n  stroke-width: 2px;\n}\n.checkpoint_table {\n	border-collapse: collapse;\n}\n.checkpoint_table td {\n	text-align: right;\n	padding-left: 10px;\n}\n\n.text-overflow-ellipsis {\n	display: inline-block;\n	overflow: hidden;\n	white-space: nowrap;\n	text-overflow: ellipsis;\n	vertical-align: text-bottom;\n	width: 100%;\n}\n\n/* tabs */\n.ui-tabs-nav {\n	display: block;\n	border-bottom: 1px solid #20a8b1;\n	border-top: 1px solid transparent;\n	margin: 3px 0 0;\n	padding: 0;\n}\n.ui-tabs-nav::after {\n	content: \'\';\n	clear: left;\n	display: block;\n	height: 0;\n	width: 0;\n}\n.ui-tabs-nav li {\n	list-style: none;\n	display: block;\n	float:left;\n	margin: 0 0 -1px;\n	border: 1px solid #20a8b1;\n}\n.ui-tabs-nav li.ui-tabs-active {\n	border-bottom-color: #0F2C3F;\n	background: #0F2C3F;\n	border-width: 2px 2px 1px;\n	font-weight: bold;\n	margin: -1px 1px;\n}\n.ui-tabs-nav a {\n	display: inline-block;\n	padding: 0.2em 0.7em;\n}\n.ui-tabs-nav .ui-icon {\n	display: inline-block;\n	font-size: 0;\n	height: 22px;\n	overflow: hidden;\n	position: relative;\n	vertical-align: top;\n	width: 16px;\n}\n.ui-tabs-nav .ui-icon-close::before {\n	content: "×";\n	font-size: 16px;\n	height: 16px;\n	position: absolute;\n	text-align: center;\n	top: 2px;\n	vertical-align: baseline;\n	width: 16px;\n	cursor: pointer;\n}\n\n</style>'
   + '<style>/* required styles */\n\n.leaflet-map-pane,\n.leaflet-tile,\n.leaflet-marker-icon,\n.leaflet-marker-shadow,\n.leaflet-tile-pane,\n.leaflet-tile-container,\n.leaflet-overlay-pane,\n.leaflet-shadow-pane,\n.leaflet-marker-pane,\n.leaflet-popup-pane,\n.leaflet-overlay-pane svg,\n.leaflet-zoom-box,\n.leaflet-image-layer,\n.leaflet-layer {\n	position: absolute;\n	left: 0;\n	top: 0;\n	}\n.leaflet-container {\n	overflow: hidden;\n	-ms-touch-action: none;\n	}\n.leaflet-tile,\n.leaflet-marker-icon,\n.leaflet-marker-shadow {\n	-webkit-user-select: none;\n	   -moz-user-select: none;\n	        user-select: none;\n	-webkit-user-drag: none;\n	}\n.leaflet-marker-icon,\n.leaflet-marker-shadow {\n	display: block;\n	}\n/* map is broken in FF if you have max-width: 100% on tiles */\n.leaflet-container img {\n	max-width: none !important;\n	}\n/* stupid Android 2 doesn\'t understand "max-width: none" properly */\n.leaflet-container img.leaflet-image-layer {\n	max-width: 15000px !important;\n	}\n.leaflet-tile {\n	filter: inherit;\n	visibility: hidden;\n	}\n.leaflet-tile-loaded {\n	visibility: inherit;\n	}\n.leaflet-zoom-box {\n	width: 0;\n	height: 0;\n	}\n/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */\n.leaflet-overlay-pane svg {\n	-moz-user-select: none;\n	}\n\n.leaflet-tile-pane    { z-index: 2; }\n.leaflet-objects-pane { z-index: 3; }\n.leaflet-overlay-pane { z-index: 4; }\n.leaflet-shadow-pane  { z-index: 5; }\n.leaflet-marker-pane  { z-index: 6; }\n.leaflet-popup-pane   { z-index: 7; }\n\n.leaflet-vml-shape {\n	width: 1px;\n	height: 1px;\n	}\n.lvml {\n	behavior: url(#default#VML);\n	display: inline-block;\n	position: absolute;\n	}\n\n\n/* control positioning */\n\n.leaflet-control {\n	position: relative;\n	z-index: 7;\n	pointer-events: auto;\n	}\n.leaflet-top,\n.leaflet-bottom {\n	position: absolute;\n	z-index: 1000;\n	pointer-events: none;\n	}\n.leaflet-top {\n	top: 0;\n	}\n.leaflet-right {\n	right: 0;\n	}\n.leaflet-bottom {\n	bottom: 0;\n	}\n.leaflet-left {\n	left: 0;\n	}\n.leaflet-control {\n	float: left;\n	clear: both;\n	}\n.leaflet-right .leaflet-control {\n	float: right;\n	}\n.leaflet-top .leaflet-control {\n	margin-top: 10px;\n	}\n.leaflet-bottom .leaflet-control {\n	margin-bottom: 10px;\n	}\n.leaflet-left .leaflet-control {\n	margin-left: 10px;\n	}\n.leaflet-right .leaflet-control {\n	margin-right: 10px;\n	}\n\n\n/* zoom and fade animations */\n\n.leaflet-fade-anim .leaflet-tile,\n.leaflet-fade-anim .leaflet-popup {\n	opacity: 0;\n	-webkit-transition: opacity 0.2s linear;\n	   -moz-transition: opacity 0.2s linear;\n	     -o-transition: opacity 0.2s linear;\n	        transition: opacity 0.2s linear;\n	}\n.leaflet-fade-anim .leaflet-tile-loaded,\n.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {\n	opacity: 1;\n	}\n\n.leaflet-zoom-anim .leaflet-zoom-animated {\n	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);\n	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);\n	     -o-transition:      -o-transform 0.25s cubic-bezier(0,0,0.25,1);\n	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);\n	}\n.leaflet-zoom-anim .leaflet-tile,\n.leaflet-pan-anim .leaflet-tile,\n.leaflet-touching .leaflet-zoom-animated {\n	-webkit-transition: none;\n	   -moz-transition: none;\n	     -o-transition: none;\n	        transition: none;\n	}\n\n.leaflet-zoom-anim .leaflet-zoom-hide {\n	visibility: hidden;\n	}\n\n\n/* cursors */\n\n.leaflet-clickable {\n	cursor: pointer;\n	}\n.leaflet-container {\n	cursor: -webkit-grab;\n	cursor:    -moz-grab;\n	}\n.leaflet-popup-pane,\n.leaflet-control {\n	cursor: auto;\n	}\n.leaflet-dragging .leaflet-container,\n.leaflet-dragging .leaflet-clickable {\n	cursor: move;\n	cursor: -webkit-grabbing;\n	cursor:    -moz-grabbing;\n	}\n\n\n/* visual tweaks */\n\n.leaflet-container {\n	background: #ddd;\n	outline: 0;\n	}\n.leaflet-container a {\n	color: #0078A8;\n	}\n.leaflet-container a.leaflet-active {\n	outline: 2px solid orange;\n	}\n.leaflet-zoom-box {\n	border: 2px dotted #38f;\n	background: rgba(255,255,255,0.5);\n	}\n\n\n/* general typography */\n.leaflet-container {\n	font: 12px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif;\n	}\n\n\n/* general toolbar styles */\n\n.leaflet-bar {\n	box-shadow: 0 1px 5px rgba(0,0,0,0.65);\n	border-radius: 4px;\n	}\n.leaflet-bar a,\n.leaflet-bar a:hover {\n	background-color: #fff;\n	border-bottom: 1px solid #ccc;\n	width: 26px;\n	height: 26px;\n	line-height: 26px;\n	display: block;\n	text-align: center;\n	text-decoration: none;\n	color: black;\n	}\n.leaflet-bar a,\n.leaflet-control-layers-toggle {\n	background-position: 50% 50%;\n	background-repeat: no-repeat;\n	display: block;\n	}\n.leaflet-bar a:hover {\n	background-color: #f4f4f4;\n	}\n.leaflet-bar a:first-child {\n	border-top-left-radius: 4px;\n	border-top-right-radius: 4px;\n	}\n.leaflet-bar a:last-child {\n	border-bottom-left-radius: 4px;\n	border-bottom-right-radius: 4px;\n	border-bottom: none;\n	}\n.leaflet-bar a.leaflet-disabled {\n	cursor: default;\n	background-color: #f4f4f4;\n	color: #bbb;\n	}\n\n.leaflet-touch .leaflet-bar a {\n	width: 30px;\n	height: 30px;\n	line-height: 30px;\n	}\n\n\n/* zoom control */\n\n.leaflet-control-zoom-in,\n.leaflet-control-zoom-out {\n	font: bold 18px \'Lucida Console\', Monaco, monospace;\n	text-indent: 1px;\n	}\n.leaflet-control-zoom-out {\n	font-size: 20px;\n	}\n\n.leaflet-touch .leaflet-control-zoom-in {\n	font-size: 22px;\n	}\n.leaflet-touch .leaflet-control-zoom-out {\n	font-size: 24px;\n	}\n\n\n/* layers control */\n\n.leaflet-control-layers {\n	box-shadow: 0 1px 5px rgba(0,0,0,0.4);\n	background: #fff;\n	border-radius: 5px;\n	}\n.leaflet-control-layers-toggle {\n	background-image: url(data:image/png;base64,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);\n	width: 36px;\n	height: 36px;\n	}\n.leaflet-retina .leaflet-control-layers-toggle {\n	background-image: url(data:image/png;base64,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);\n	background-size: 26px 26px;\n	}\n.leaflet-touch .leaflet-control-layers-toggle {\n	width: 44px;\n	height: 44px;\n	}\n.leaflet-control-layers .leaflet-control-layers-list,\n.leaflet-control-layers-expanded .leaflet-control-layers-toggle {\n	display: none;\n	}\n.leaflet-control-layers-expanded .leaflet-control-layers-list {\n	display: block;\n	position: relative;\n	}\n.leaflet-control-layers-expanded {\n	padding: 6px 10px 6px 6px;\n	color: #333;\n	background: #fff;\n	}\n.leaflet-control-layers-selector {\n	margin-top: 2px;\n	position: relative;\n	top: 1px;\n	}\n.leaflet-control-layers label {\n	display: block;\n	}\n.leaflet-control-layers-separator {\n	height: 0;\n	border-top: 1px solid #ddd;\n	margin: 5px -10px 5px -6px;\n	}\n\n\n/* attribution and scale controls */\n\n.leaflet-container .leaflet-control-attribution {\n	background: #fff;\n	background: rgba(255, 255, 255, 0.7);\n	margin: 0;\n	}\n.leaflet-control-attribution,\n.leaflet-control-scale-line {\n	padding: 0 5px;\n	color: #333;\n	}\n.leaflet-control-attribution a {\n	text-decoration: none;\n	}\n.leaflet-control-attribution a:hover {\n	text-decoration: underline;\n	}\n.leaflet-container .leaflet-control-attribution,\n.leaflet-container .leaflet-control-scale {\n	font-size: 11px;\n	}\n.leaflet-left .leaflet-control-scale {\n	margin-left: 5px;\n	}\n.leaflet-bottom .leaflet-control-scale {\n	margin-bottom: 5px;\n	}\n.leaflet-control-scale-line {\n	border: 2px solid #777;\n	border-top: none;\n	line-height: 1.1;\n	padding: 2px 5px 1px;\n	font-size: 11px;\n	white-space: nowrap;\n	overflow: hidden;\n	-moz-box-sizing: content-box;\n	     box-sizing: content-box;\n\n	background: #fff;\n	background: rgba(255, 255, 255, 0.5);\n	}\n.leaflet-control-scale-line:not(:first-child) {\n	border-top: 2px solid #777;\n	border-bottom: none;\n	margin-top: -2px;\n	}\n.leaflet-control-scale-line:not(:first-child):not(:last-child) {\n	border-bottom: 2px solid #777;\n	}\n\n.leaflet-touch .leaflet-control-attribution,\n.leaflet-touch .leaflet-control-layers,\n.leaflet-touch .leaflet-bar {\n	box-shadow: none;\n	}\n.leaflet-touch .leaflet-control-layers,\n.leaflet-touch .leaflet-bar {\n	border: 2px solid rgba(0,0,0,0.2);\n	background-clip: padding-box;\n	}\n\n\n/* popup */\n\n.leaflet-popup {\n	position: absolute;\n	text-align: center;\n	}\n.leaflet-popup-content-wrapper {\n	padding: 1px;\n	text-align: left;\n	border-radius: 12px;\n	}\n.leaflet-popup-content {\n	margin: 13px 19px;\n	line-height: 1.4;\n	}\n.leaflet-popup-content p {\n	margin: 18px 0;\n	}\n.leaflet-popup-tip-container {\n	margin: 0 auto;\n	width: 40px;\n	height: 20px;\n	position: relative;\n	overflow: hidden;\n	}\n.leaflet-popup-tip {\n	width: 17px;\n	height: 17px;\n	padding: 1px;\n\n	margin: -10px auto 0;\n\n	-webkit-transform: rotate(45deg);\n	   -moz-transform: rotate(45deg);\n	    -ms-transform: rotate(45deg);\n	     -o-transform: rotate(45deg);\n	        transform: rotate(45deg);\n	}\n.leaflet-popup-content-wrapper,\n.leaflet-popup-tip {\n	background: white;\n\n	box-shadow: 0 3px 14px rgba(0,0,0,0.4);\n	}\n.leaflet-container a.leaflet-popup-close-button {\n	position: absolute;\n	top: 0;\n	right: 0;\n	padding: 4px 4px 0 0;\n	text-align: center;\n	width: 18px;\n	height: 14px;\n	font: 16px/14px Tahoma, Verdana, sans-serif;\n	color: #c3c3c3;\n	text-decoration: none;\n	font-weight: bold;\n	background: transparent;\n	}\n.leaflet-container a.leaflet-popup-close-button:hover {\n	color: #999;\n	}\n.leaflet-popup-scrolled {\n	overflow: auto;\n	border-bottom: 1px solid #ddd;\n	border-top: 1px solid #ddd;\n	}\n\n.leaflet-oldie .leaflet-popup-content-wrapper {\n	zoom: 1;\n	}\n.leaflet-oldie .leaflet-popup-tip {\n	width: 24px;\n	margin: 0 auto;\n\n	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";\n	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);\n	}\n.leaflet-oldie .leaflet-popup-tip-container {\n	margin-top: -1px;\n	}\n\n.leaflet-oldie .leaflet-control-zoom,\n.leaflet-oldie .leaflet-control-layers,\n.leaflet-oldie .leaflet-popup-content-wrapper,\n.leaflet-oldie .leaflet-popup-tip {\n	border: 1px solid #999;\n	}\n\n\n/* div icon */\n\n.leaflet-div-icon {\n	background: #fff;\n	border: 1px solid #666;\n	}\n</style>'
 //note: smartphone.css injection moved into code/smartphone.js
   + '<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:100,100italic,300,300italic,400,400italic,500,500italic,700,700italic&subset=latin,cyrillic-ext,greek-ext,greek,vietnamese,latin-ext,cyrillic"/>';
@@ -164,8 +168,8 @@ window.RANGE_INDICATOR_COLOR = 'red'
 window.MIN_ZOOM = 3;
 
 window.DEFAULT_PORTAL_IMG = '//commondatastorage.googleapis.com/ingress.com/img/default-portal-image.png';
-//window.NOMINATIM = '//nominatim.openstreetmap.org/search?format=json&limit=1&q=';
-window.NOMINATIM = '//open.mapquestapi.com/nominatim/v1/search.php?format=json&polygon_geojson=1&q=';
+//window.NOMINATIM = '//open.mapquestapi.com/nominatim/v1/search.php?format=json&polygon_geojson=1&q=';
+window.NOMINATIM = '//nominatim.openstreetmap.org/search?format=json&polygon_geojson=1&q=';
 
 // INGRESS CONSTANTS /////////////////////////////////////////////////
 // http://decodeingress.me/2012/11/18/ingress-portal-levels-and-link-range/
@@ -262,7 +266,7 @@ window.artifact.requestData = function() {
   if (isIdle()) {
     artifact.idle = true;
   } else {
-    window.postAjax('artifacts', {}, artifact.handleSuccess, artifact.handleError);
+    window.postAjax('getArtifactPortals', {}, artifact.handleSuccess, artifact.handleError);
   }
 }
 
@@ -292,34 +296,14 @@ window.artifact.handleFailure = function(data) {
 
 window.artifact.processData = function(data) {
 
-  if (data.error || !data.artifacts) {
-    console.warn('Failed to find artifacts in artifact response');
+  if (data.error || !data.result) {
+    console.warn('Failed to find result in getArtifactPortals response');
     return;
   }
 
   artifact.clearData();
 
-  $.each (data.artifacts, function(i,artData) {
-    // if we have no descriptions for a type, we don't know about it
-    if (!artifact.getArtifactDescriptions(artData.artifactId)) {
-      // jarvis and amar artifacts - fragmentInfos and targetInfos
-      // (future types? completely unknown at this time!)
-      console.warn('Note: unknown artifactId '+artData.artifactId+' - guessing how to handle it');
-    }
-
-    artifact.artifactTypes[artData.artifactId] = artData.artifactId;
-
-    if (artData.fragmentInfos) {
-      artifact.processFragmentInfos (artData.artifactId, artData.fragmentInfos);
-    }
-
-    if (artData.targetInfos) {
-      artifact.processTargetInfos (artData.artifactId, artData.targetInfos);
-    }
-
-    // other data in future? completely unknown!
-  });
-
+  artifact.processResult(data.result);
 
   // redraw the artifact layer
   artifact.updateLayer();
@@ -328,38 +312,52 @@ window.artifact.processData = function(data) {
 
 
 window.artifact.clearData = function() {
-
   artifact.portalInfo = {};
   artifact.artifactTypes = {};
+
+  artifact.entities = [];
 }
 
-window.artifact.processFragmentInfos = function (id, fragments) {
-  $.each(fragments, function(i, fragment) {
-    if (!artifact.portalInfo[fragment.portalGuid]) {
-      artifact.portalInfo[fragment.portalGuid] = { _entityData: fragment.portalInfo };
+
+window.artifact.processResult = function (portals) {
+  // portals is an object, keyed from the portal GUID, containing the portal entity array
+
+  for (var guid in portals) {
+    var ent = portals[guid];
+    var data = decodeArray.portalSummary(ent);
+
+    // we no longer know the faction for the target portals, and we don't know which fragment numbers are at the portals
+    // all we know, from the portal summary data, for each type of artifact, is that each artifact portal is
+    // - a target portal or not - no idea for which faction
+    // - has one (or more) fragments, or not
+
+    if (!artifact.portalInfo[guid]) artifact.portalInfo[guid] = {};
+
+    // store the decoded data - needed for lat/lng for layer markers
+    artifact.portalInfo[guid]._data = data;
+
+    for(var type in data.artifactBrief.target) {
+      if (!artifact.artifactTypes[type]) artifact.artifactTypes[type] = {};
+
+      if (!artifact.portalInfo[guid][type]) artifact.portalInfo[guid][type] = {};
+
+      artifact.portalInfo[guid][type].target = TEAM_NONE;  // as we no longer know the team...
     }
 
-    if (!artifact.portalInfo[fragment.portalGuid][id]) artifact.portalInfo[fragment.portalGuid][id] = {};
+    for(var type in data.artifactBrief.fragment) {
+      if (!artifact.artifactTypes[type]) artifact.artifactTypes[type] = {};
 
-    if (!artifact.portalInfo[fragment.portalGuid][id].fragments) artifact.portalInfo[fragment.portalGuid][id].fragments = [];
+      if (!artifact.portalInfo[guid][type]) artifact.portalInfo[guid][type] = {};
 
-    $.each(fragment.fragments, function(i,f) {
-      artifact.portalInfo[fragment.portalGuid][id].fragments.push(f);
-    });
-
-  });
-}
-
-window.artifact.processTargetInfos = function (id, targets) {
-  $.each(targets, function(i, target) {
-    if (!artifact.portalInfo[target.portalGuid]) {
-      artifact.portalInfo[target.portalGuid] = { _entityData: target.portalInfo };
+      artifact.portalInfo[guid][type].fragments = true; //as we no longer have a list of the fragments there
     }
 
-    if (!artifact.portalInfo[target.portalGuid][id]) artifact.portalInfo[target.portalGuid][id] = {};
 
-    artifact.portalInfo[target.portalGuid][id].target = target.team === 'RESISTANCE' ? TEAM_RES : TEAM_ENL;
-  });
+    // let's pre-generate the entities needed to render the map - array of [guid, timestamp, ent_array]
+    artifact.entities.push ( [guid, data.timestamp, ent] );
+
+  }
+
 }
 
 window.artifact.getArtifactTypes = function() {
@@ -370,29 +368,9 @@ window.artifact.isArtifact = function(type) {
   return type in artifact.artifactTypes;
 }
 
-window.artifact.getArtifactDescriptions = function(type) {
-  var descriptions = {
-    'jarvis': { 'title': "Jarvis Shards", 'fragmentName': "shards" },
-    'amar': { 'title': "Amar Artifacts", 'fragmentName': "artifacts" },
-    'helios': { 'title': "Helios Artifacts", 'fragmentName': "artifacts" },
-    'shonin': { 'title': "Sh\u014Dnin Shards", 'fragmentName': "shards" },
-  };
-
-  return descriptions[type];
-}
-
 // used to render portals that would otherwise be below the visible level
 window.artifact.getArtifactEntities = function() {
-  var entities = [];
-
-  // create fake entities from the artifact data
-  $.each (artifact.portalInfo, function(guid,data) {
-    var timestamp = 0; // we don't have a valid timestamp - so let's use 0
-    var ent = [ guid, timestamp, data._entityData ];
-    entities.push(ent);
-  });
-
-  return entities;
+  return artifact.entities;
 }
 
 window.artifact.getInterestingPortals = function() {
@@ -413,89 +391,53 @@ window.artifact.updateLayer = function() {
   artifact._layer.clearLayers();
 
   $.each(artifact.portalInfo, function(guid,data) {
-    var latlng = L.latLng ([data._entityData[2]/1E6, data._entityData[3]/1E6]);
+    var latlng = L.latLng ([data._data.latE6/1E6, data._data.lngE6/1E6]);
 
-    // jarvis shard icon
-    var iconUrl = undefined;
-    var iconSize = 0;
-    var opacity = 1.0;
+    $.each(data, function(type,detail) {
 
-    // redundant as of 2014-02-05 - jarvis shards removed
-    if (data.jarvis) {
-      if (data.jarvis.target) {
-        // target portal - show the target marker. use the count of fragments at the target to pick the right icon - it has segments that fill up
+      // we'll construct the URL form the type - stock seems to do that now
 
-        var count = data.jarvis.fragments ? data.jarvis.fragments.length : 0;
+      var iconUrl;
+      if (data[type].target !== undefined) {
+        // target portal
+        var iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/'+type+'_shard_target.png'
+        var iconSize = 100/2;
+        var opacity = 1.0;
 
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/jarvis_shard_target_'+count+'.png';
-        iconSize = 100/2; // 100 pixels - half that size works better
-      } else if (data.jarvis.fragments) {
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/jarvis_shard.png';
-        iconSize = 60/2; // 60 pixels - half that size works better
-        opacity = 0.6; // these often hide portals - let's make them semi transparent
+        var icon = L.icon({
+          iconUrl: iconUrl,
+          iconSize: [iconSize,iconSize],
+          iconAnchor: [iconSize/2,iconSize/2],
+          className: 'no-pointer-events'  // the clickable: false below still blocks events going through to the svg underneath
+        });
+
+        var marker = L.marker (latlng, {icon: icon, clickable: false, keyboard: false, opacity: opacity });
+
+        artifact._layer.addLayer(marker);
+
+      } else if (data[type].fragments) {
+        // fragment(s) at portal
+
+        var iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/'+type+'_shard.png'
+        var iconSize = 60/2;
+        var opacity = 0.6;
+
+        var icon = L.icon({
+          iconUrl: iconUrl,
+          iconSize: [iconSize,iconSize],
+          iconAnchor: [iconSize/2,iconSize/2],
+          className: 'no-pointer-events'  // the clickable: false below still blocks events going through to the svg underneath
+        });
+
+        var marker = L.marker (latlng, {icon: icon, clickable: false, keyboard: false, opacity: opacity });
+
+        artifact._layer.addLayer(marker);
+
       }
 
-    }
-    // 2014-02-06: a guess at whats needed for the new artifacts
-    if (data.amar) {
-      if (data.amar.target) {
-        // target portal - show the target marker. use the count of fragments at the target to pick the right icon - it has segments that fill up
+    });  //end $.each(data, function(type,detail)
 
-        var count = data.amar.fragments ? data.amar.fragments.length : 0;
-
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/amar_shard_target_'+count+'.png';
-        iconSize = 100/2; // 100 pixels - half that size works better
-      } else if (data.amar.fragments) {
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/amar_shard.png';
-        iconSize = 60/2; // 60 pixels - half that size works better
-        opacity = 0.6; // these often hide portals - let's make them semi transparent
-      }
-
-    }
-
-    // 2014-08-09 - helios artifacts. original guess was slightly wrong
-    if (data.helios) {
-      if (data.helios.target) {
-        // target portal - show the target marker. helios target marker doesn't fill like the earlier jarvis/amar targets
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/helios_shard_target.png';
-        iconSize = 100/2; // 100 pixels - half that size works better
-      } else if (data.helios.fragments) {
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/helios_shard.png';
-        iconSize = 60/2; // 60 pixels - half that size works better
-        opacity = 0.6; // these often hide portals - let's make them semi transparent
-      }
-
-    }
-
-    // 2015-03-05 - shonin shards
-    if (data.shonin) {
-      if (data.shonin.target) {
-        // target portal - show the target marker.
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/shonin_shard_target.png';
-        iconSize = 100/2; // 100 pixels - half that size works better
-      } else if (data.shonin.fragments) {
-        iconUrl = '//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/shonin_shard.png';
-        iconSize = 60/2; // 60 pixels - half that size works better
-        opacity = 0.6; // these often hide portals - let's make them semi transparent
-      }
-
-    }
-
-    if (iconUrl) {
-      var icon = L.icon({
-        iconUrl: iconUrl,
-        iconSize: [iconSize,iconSize],
-        iconAnchor: [iconSize/2,iconSize/2],
-        className: 'no-pointer-events'  // the clickable: false below still blocks events going through to the svg underneath
-      });
-
-      var marker = L.marker (latlng, {icon: icon, clickable: false, keyboard: false, opacity: opacity });
-
-      artifact._layer.addLayer(marker);
-    } else {
-      console.warn('Oops! no URL for artifact portal icon?!');
-    }
-  });
+  }); //end $.each(artifact.portalInfo, function(guid,data)
 
 }
 
@@ -509,9 +451,9 @@ window.artifact.showArtifactList = function() {
 
   var first = true;
   $.each(artifact.artifactTypes, function(type,type2) {
-    var description = artifact.getArtifactDescriptions(type);
-
-    var name = description ? description.title : ('unknown artifact type: '+type);
+    // no nice way to convert the Niantic internal name into the correct display name
+    // (we do get the description string once a portal with that shard type is selected - could cache that somewhere?)
+    var name = type.capitalize() + ' shards';
 
     if (!first) html += '<hr>';
     first = false;
@@ -526,28 +468,32 @@ window.artifact.showArtifactList = function() {
       if (type in data) {
         // this portal has data for this artifact type - add it to the table
 
-        var sortVal = 0;
-
-        var onclick = 'zoomToAndShowPortal(\''+guid+'\',['+data._entityData[2]/1E6+','+data._entityData[3]/1E6+'])';
-        var row = '<tr><td class="portal"><a onclick="'+onclick+'">'+escapeHtmlSpecialChars(data._entityData[8])+'</a></td>';
+        var onclick = 'zoomToAndShowPortal(\''+guid+'\',['+data._data.latE6/1E6+','+data._data.lngE6/1E6+'])';
+        var row = '<tr><td class="portal"><a onclick="'+onclick+'">'+escapeHtmlSpecialChars(data._data.title)+'</a></td>';
 
         row += '<td class="info">';
 
-        if (data[type].target) {
-          row += '<span class="target '+TEAM_TO_CSS[data[type].target]+'">'+(data[type].target==TEAM_RES?'Resistance':'Enlightened')+' target</span> ';
-          sortVal = 100000+data[type].target;
+        if (data[type].target !== undefined) {
+          if (data[type].target == TEAM_NONE) {
+            row += '<span class="target">Target Portal</span> ';
+          } else {
+            row += '<span class="target '+TEAM_TO_CSS[data[type].target]+'">'+(data[type].target==TEAM_RES?'Resistance':'Enlightened')+' target</span> ';
+          }
         }
 
         if (data[type].fragments) {
-          if (data[type].target) {
+          if (data[type].target !== undefined) {
             row += '<br>';
           }
-          var fragmentName = description ? description.fragmentName : 'fragment';
-          row += '<span class="fragments'+(data[type].target?' '+TEAM_TO_CSS[data[type].target]:'')+'">'+fragmentName+': #'+data[type].fragments.join(', #')+'</span> ';
-          sortVal = Math.min.apply(null, data[type].fragments); // use min shard number at portal as sort key
+          var fragmentName = 'shard';
+//          row += '<span class="fragments'+(data[type].target?' '+TEAM_TO_CSS[data[type].target]:'')+'">'+fragmentName+': #'+data[type].fragments.join(', #')+'</span> ';
+          row += '<span class="fragments'+(data[type].target?' '+TEAM_TO_CSS[data[type].target]:'')+'">'+fragmentName+': yes</span> ';
         }
 
         row += '</td></tr>';
+
+        // sort by target portals first, then by portal GUID
+        var sortVal = (data[type].target !== undefined ? 'A' : 'Z') + guid;
 
         tableRows.push ( [sortVal, row] );
       }
@@ -560,7 +506,9 @@ window.artifact.showArtifactList = function() {
 
     // sort the rows
     tableRows.sort(function(a,b) {
-      return a[0]-b[0];
+      if (a[0] == b[0]) return 0;
+      else if (a[0] < b[0]) return -1;
+      else return 1;
     });
 
     // and add them to the table
@@ -570,6 +518,13 @@ window.artifact.showArtifactList = function() {
     html += '</table>';
   });
 
+
+  html += "<hr />"
+        + "<p>In Summer 2015, Niantic changed the data format for artifact portals. We no longer know:</p>"
+        + "<ul><li>Which team each target portal is for - only that it is a target</li>"
+        + "<li>Which shards are at each portal, just that it has one or more shards</li></ul>"
+        + "<p>You can select a portal and the detailed data contains the list of shard numbers, but there's still no"
+        + " more information on targets.</p>";
 
   dialog({
     title: 'Artifacts',
@@ -1304,7 +1259,7 @@ function boot() {
   if(!isSmartphone()) // TODO remove completely?
     window.debug.console.overwriteNativeIfRequired();
 
-  console.log('loading done, booting. Built: 2015-04-04-000827');
+  console.log('loading done, booting. Built: 2015-09-17-163503');
   if(window.deviceID) console.log('Your device ID: ' + window.deviceID);
   window.runOnSmartphonesBeforeBoot();
 
@@ -1320,7 +1275,6 @@ function boot() {
   }});
 
   window.extractFromStock();
-  window.iitc_bg.init(); //NOTE: needs to be early (before any requests sent), but after extractFromStock()
   window.setupIdle();
   window.setupTaphold();
   window.setupStyles();
@@ -11146,339 +11100,6 @@ load(JQUERY).then(JQUERYUI).thenRun(boot);
 
 ;
 
-// interface to the use of the google 'botguard' javascript added to the intel site
-
-
-iitc_bg = Object();
-
-iitc_bg.DISABLED = false; //if set, botguard is disabld. no b/c params sent in requests, no processing of responses
-
-iitc_bg.init = function() {
-  if (iitc_bg.DISABLED) return;
-
-// stock site - 'ad.e()' constructor
-//function Ad() {
-//  this.Eb = {}; // a map, indexed by 'group-[ab]-actions', each entry containing an array of 'yd' objects (simple object, with 'gf' and 'cb' members). a queue of data to process?
-//  this.Oa = {}; // a map, indexed by 'group-[ab]-actions', each entry containing an object with an 'invoke' method
-//  this.Zc = {}; // a map, indexed by group, witn constructors for botguard
-//  this.eb = ""; // the 'key' - B
-//  this.Kh = e;  // e is defined in the main web page as "var e = function(w) {eval(w);};"
-//}
-
-  var botguard_eval = e;
-
-  iitc_bg.data_queue = {};    //.lb - indexed by group
-  iitc_bg.instance_queue = {}; //.ya - indexed by group
-  iitc_bg.key = "";      //.cb
-  iitc_bg.botguard = {}; //.qc - indexed by key
-  iitc_bg.evalFunc = botguard_eval;
-
-// stock site code
-//Ad.prototype.U = function(a, b) {
-//  Bd(this, a);
-//  for (var c in b) if ("group-b-actions" == c || "group-a-actions" == c) {
-//    for (var d = 0; d < b[c].length; ++d) Dd(this, c, new Ed(b[c][d], a));
-//    Fd(this, c);
-//  }
-//};
-// and.. Ed - a simple object that holds it's parameters and the timestamp it was created
-//function Ed(a, b) {
-//  var c = w();
-//  this.mg = a;
-//  this.eb = b;
-//  this.Ki = c;
-//}
-
-
-  // to initialise, we need four things
-  // B - a key(?). set in the main web page HTML, name isn't changed on site updates
-  // CS - initialisation data for botguard - again in the main page, again name is constant
-
-
-  var botguard_key = B;
-  var botguard_data = CS;
-
-  iitc_bg.process_key(botguard_key);
-
-  for (var group in botguard_data) {
-    // TODO? filter this loop by group-[ab]-actions only? the stock site does, but this seems unnecessary
-
-    // the stock site has code to create the emtpy arrays with the group index as and when needed
-    // however, it makes more sense to do it here just once, rather than testing every time
-    iitc_bg.data_queue[group] = [];
-    iitc_bg.instance_queue[group] = [];
-
-    for (var i=0; i < botguard_data[group].length; i++) {
-      iitc_bg.push_queue(group, botguard_data[group][i], botguard_key);
-    }
-
-    iitc_bg.process_queue(group);
-  }
-};
-
-//TODO: better name - will do for now...
-iitc_bg.push_queue = function(group, data, key) {
-//stock site code
-//a=='this', b==group-[ab]-actions, c==object with .mg==data, .eb==key, .Ki==current timestamp
-//function Dd(a, b, c) {
-//  var d = c.eb && a.Zc[c.eb];
-//  if ("dkxm" == c.mg || d) a.Eb[b] || (a.Eb[b] = []), a.Eb[b].push(c);
-//}
-
-  // Niantic have changed how the server returns data items to the client a few times, which cause
-  // bad non-string items to come into here. this breaks things badly
-  if (typeof data !== "string") throw "Error: iitc_bg.process_queue got dodgy data - expected a string";
-
-  var botguard_instance = iitc_bg.key && iitc_bg.botguard[iitc_bg.key];
-
-  if (data == "dkxm" || botguard_instance) {
-    // NOTE: we pre-create empty per-group arrays on init
-    iitc_bg.data_queue[group].push( {data: data, key: key, time: Date.now()} );
-  }
-};
-
-
-// called both on initialisation and on processing responses from the server
-// 
-iitc_bg.process_key = function(key,serverEval) {
-  if (iitc_bg.DISABLED) return;
-
-
-// stock site code
-//function Bd(a, b, c) {
-//  if (a.Zc[b]) a.eb = b; else {
-//    var d = !0;
-//    if (c) try {
-//      a.Kh(c);
-//    } catch (f) {
-//      d = !1;
-//    }
-//    d && (a.Zc[b] = botguard.bg, a.eb = b);
-//  }
-//}
-
-  if (iitc_bg.botguard[key]) {
-    iitc_bg.key = key;
-  } else {
-    var noCatch = true;
-
-    if (serverEval) {
-      // server wants us to eval some code! risky, and impossible to be certain we can do it safely
-      // however... reports say that it only interacts with the botguard.bg code, so we might be fine just running it
-      // (but this is only when we don't send the correct params to the server? no reports of this code triggering yet...)
-      try {
-        console.warn('botguard: Server-generated javascript eval requested:\n'+serverEval);
-debugger;
-if (!confirm('The server asked IITC to run (eval) some javascript. This may or may not be safe. Run and continue?\n\nScript:\n'+serverEval)) { console.error('server javascript eval cancelled') } else
-        iitc_bg.evalFunc(serverEval);
-        console.log('botguard: Server-generated javascript ran OK');
-      } catch(e) {
-        console.warn('botguard: Server-generated javascript - threw an exception');
-        console.warn(e);
-        noCatch = false;
-      }
-    }
-    if (noCatch) {
-      iitc_bg.botguard[key] = botguard.bg;
-      iitc_bg.key = key;
-    }
-  }
-};
-
-
-//convert a method name to the group-[ab]-actions value, or return 'undefined' for no group
-//NOTE: the stock code separates the 'in any group' and 'which group' test, but it's cleaner to combine them
-//UPDATE: the 'not in any group' case was removed from the stock site logic
-iitc_bg.get_method_group = function(method) {
-//stock site
-//function Cd(a) {
-//  return -1 != ig.indexOf(a) ? "group-a-actions" : "group-b-actions";
-//}
-
-  if (window.niantic_params.botguard_method_group_flag[method] === undefined) {
-    throw 'Error: method '+method+' not found in the botguard_method_group_flag object';
-  }
-
-  if (window.niantic_params.botguard_method_group_flag[method]) {
-    return "ingress-a-actions";
-  } else {
-    return "ingress-b-actions";
-  }
-};
-
-
-
-
-// returns the extra parameters to add to any JSON request
-iitc_bg.extra_request_params = function(method) {
-  if (iitc_bg.DISABLED) return {};
-
-
-  var extra = {};
-  extra.b = iitc_bg.key;
-  extra.c = iitc_bg.get_request_data(method);
-
-  return extra;
-};
-
-iitc_bg.get_request_data = function(method) {
-//function Id(a, b) {
-//  var c = "mxkd", d = Cd(b);
-//  a.Oa[d] && 0 < a.Oa[d].length && a.Oa[d].shift().invoke(function(a) {
-//    c = a;
-//  });
-//  Fd(a, d);
-//  return c;
-//}
-
-
-  var group = iitc_bg.get_method_group(method);
-  if (!group) {
-    return "";
-  }
-
-  // this seems to be some kind of 'flag' string - and is either "mxkd" or "dkxm". it can be returned from the
-  // server, so we stick with the same string rather than something more sensibly named
-  var data = "mxkd";
-
-  if (iitc_bg.instance_queue[group] && iitc_bg.instance_queue[group].length > 0) {
-    var instance = iitc_bg.instance_queue[group].shift();
-    instance.invoke(function(a) { data=a; });
-  };
-
-  iitc_bg.process_queue(group);
-
-  if (data.indexOf('undefined is not a function') != -1) {
-    // there's been cases of something going iffy in the botguard code, or IITC's interface to it. in this case,
-    // instead of the correct encoded string, the data contains an error message along the lines of
-    // "E:undefined is not a function:TypeError: undefined is not a function"[...]
-    // in this case, better to just stop with some kind of error than send the string to the server
-    debugger;
-    throw ('Error: iitc_bg.get_request_data got bad data - cannot safely continue');
-  }
-
-  return data;
-};
-
-// stock site - 'dummy' botguard object
-//function Sf() {}
-//Sf.prototype.invoke = function(a) {
-//  a("dkxm");
-//};
-  
-iitc_bg.dummy_botguard = function() {};
-iitc_bg.dummy_botguard.prototype.invoke = function(callback) {
-  callback("dkxm");
-};
-
-
-iitc_bg.process_queue = function(group) {
-//stock site
-//function Fd(a, b) {
-//  if (a.Eb[b]) for (; 0 < a.Eb[b].length; ) {
-//    var c = a.Eb[b].shift(), d = c.mg, f = c.Ki + 717e4, g;
-//    "dkxm" == d ? g = new jg : w() < f && (g = new a.Zc[c.eb](d));
-//    if (g) {
-//      c = a;
-//      d = b;
-//      c.Oa[d] || (c.Oa[d] = []);
-//      c.Oa[d].push(g);
-//      break;
-//    }
-//  }
-//}
-
-// processes an entry in the queue for the specified group
-
-  while (iitc_bg.data_queue[group] && iitc_bg.data_queue[group].length > 0) {
-    var item = iitc_bg.data_queue[group].shift();
-    var obj = undefined;
-
-    if (item.data == "dkxm") {
-      obj = new iitc_bg.dummy_botguard;
-    } else if (Date.now() < item.time + 7170000) {
-      obj = new iitc_bg.botguard[item.key](item.data);
-    }
-
-    // note: we pre-create empty per-group arrays on init
-    if (obj) {
-      iitc_bg.instance_queue[group].push(obj);
-      break;
-    }
-  }
-
-};
-
-
-iitc_bg.process_response_params = function(method,data) {
-  if (iitc_bg.DISABLED) {
-    // the rest of IITC won't expect these strange a/b/c params in the response data
-    // (e.g. it's pointless to keep in the cache, etc), so clear them
-    delete data.a;
-    delete data.b;
-    delete data.c;
-    return;
-  }
-
-// stock site: response processing
-//yd.prototype.vi = function(a, b) {
-//  var c = b.target;
-//  if (cd(c)) {
-//    this.Ib.reset();
-//    var d = a.hg, f = JSON.parse(ed(c));
-//    if (f.c && 0 < f.c.length) {
-//      var g = Ad.e(), h = a.getMethodName(), l = f.a, m = f.b, r = f.c[0];
-//      m && l && Bd(g, m, l);
-//      h = Cd(h);
-//      if (r && m && 0 < r.length) for (l = 0; l < r.length; ++l) Dd(g, h, new Ed(r[l], m));
-//      g.Oa[h] && 0 != g.Oa[h].length || Fd(g, h);
-//    }
-//    "error" in f && "out of date" == f.error ? (d = rd.e(), Gd(!1), d.ie = !0, Hd("Please refresh for the latest version.")) : "error" in f && "RETRY" == f.error ? (this.Da.ja(1, a), td(this.Ib)) : n.setTimeout(pa(d, f), 0);
-//  } else this.Ib.Ec = !0, d = a.cg, ha(d) && (f = {
-//    error: dd(c) || "unknown",
-//    respStatus: c.getStatus()
-//  }, n.setTimeout(pa(d, f), 0));
-//  d = this.Te;
-//  d.Aa.remove(c) && d.zc(c);
-//};
-
-
-  if (data.c && data.c.length > 0) {
-
-    if (data.b && data.a) {
-      // in this case, we *EVAL* the 'data.a' string from the server!
-      // however, it's not a case that's been ever triggered in normal use, as far as I know
-      iitc_bg.process_key(data.b, data.a);
-    }
-
-    var group = iitc_bg.get_method_group(method);
-
-//NOTE: I missed a change here a while ago. originally data.c was a single-level array of items to push on the queue,
-//but now it's a two-dimensional array, and it's only index zero that's used!
-    var data_items = data.c[0];
-
-    if (data_items && data.b && data_items.length > 0) {
-      for (var i=0; i<data_items.length; i++) {
-        iitc_bg.push_queue(group, data_items[i], data.b);
-      }
-    }
-
-    if (iitc_bg.instance_queue[group] && iitc_bg.instance_queue[group].length == 0) {
-      iitc_bg.process_queue(group);
-    }
-
-  }
-
-  // finally, the rest of IITC won't expect these strange a/b/c params in the response data
-  // (e.g. it's pointless to keep in the cache, etc), so clear them
-  delete data.a;
-  delete data.b;
-  delete data.c;
-};
-
-
-;
-
 window.chat = function() {};
 
 //WORK IN PROGRESS - NOT YET USED!!
@@ -12814,17 +12435,59 @@ window.setupDialogs = function() {
       energy: arr[2],
     };
   }
+  function parseArtifactBrief(arr) {
+    if (arr === null) return null;
+
+    // array index 0 is for fragments at the portal. index 1 is for target portals
+    // each of those is two dimensional - not sure why. part of this is to allow for multiple types of artifacts,
+    // with their own targets, active at once - but one level for the array is enough for that
+
+    // making a guess - first level is for different artifact types, second index would allow for
+    // extra data for that artifact type
+
+    function decodeArtifactArray(arr) {
+      var result = {};
+      for (var i=0; i<arr.length; i++) {
+        // we'll use the type as the key - and store any additional array values as the value
+        // that will be an empty array for now, so only object keys are useful data
+        result[arr[i][0]] = arr[i].slice(1);
+      }
+      return result;
+    }
+
+    return {
+      fragment: decodeArtifactArray(arr[0]),
+      target: decodeArtifactArray(arr[1]),
+    };
+  }
+
+  function parseArtifactDetail(arr) {
+    if (arr == null) { return null; }
+    // empty artifact data is pointless - ignore it
+    if (arr.length == 3 && arr[0] == "" && arr[1] == "" && arr[2].length == 0) { return null; }
+    return {
+      type: arr[0],
+      displayName: arr[1],
+      fragments: arr[2],
+    };
+  }
 
 
-  var summaryArrayLength = undefined;
+//there's also a 'placeholder' portal - generated from the data in links/fields. only has team/lat/lng
 
-
-  function basePortalData(a) {
+  var CORE_PORTA_DATA_LENGTH = 4;
+  function corePortalData(a) {
     return {
       // a[0] == type (always 'p')
       team:          a[1],
       latE6:         a[2],
-      lngE6:         a[3],
+      lngE6:         a[3]
+    }
+  };
+
+  var SUMMARY_PORTAL_DATA_LENGTH = 14;
+  function summaryPortalData(a) {
+    return {
       level:         a[4],
       health:        a[5],
       resCount:      a[6],
@@ -12832,19 +12495,32 @@ window.setupDialogs = function() {
       title:         a[8],
       ornaments:     a[9],
       mission:       a[10],
-      mission50plus: a[11]
+      mission50plus: a[11],
+      artifactBrief: parseArtifactBrief(a[12]),
+      timestamp:     a[13]
     };
   };
+
+  var DETAILED_PORTAL_DATA_LENGTH = SUMMARY_PORTAL_DATA_LENGTH+4;
+
 
   window.decodeArray.portalSummary = function(a) {
     if (!a) return undefined;
 
     if (a[0] != 'p') throw 'Error: decodeArray.portalSUmmary - not a portal';
 
-    if (summaryArrayLength===undefined) summaryArrayLength = a.length;
-    if (summaryArrayLength!=a.length) console.warn('decodeArray.portalSUmmary: inconsistant map data portal array lengths');
+    if (a.length == CORE_PORTA_DATA_LENGTH) {
+      return corePortalData(a);
+    }
 
-    return basePortalData(a);
+    // NOTE: allow for either summary or detailed portal data to be passed in here, as details are sometimes
+    // passed into code only expecting summaries
+    if (a.length != SUMMARY_PORTAL_DATA_LENGTH && a.length != DETAILED_PORTAL_DATA_LENGTH) {
+      console.warn('Portal summary length changed - portal details likely broken!');
+      debugger;
+    }
+
+    return $.extend(corePortalData(a), summaryPortalData(a));
   }
 
   window.decodeArray.portalDetail = function(a) {
@@ -12852,15 +12528,22 @@ window.setupDialogs = function() {
 
     if (a[0] != 'p') throw 'Error: decodeArray.portalDetail - not a portal';
 
-    if (summaryArrayLength===undefined) throw 'Error: decodeArray.portalDetail - not yet seen any portal summary data - cannot decode!';
+    if (a.length != DETAILED_PORTAL_DATA_LENGTH) {
+      console.warn('Portal detail length changed - portal details may be wrong');
+      debugger;
+    }
+
+    //TODO look at the array values, make a better guess as to which index the mods start at, rather than using the hard-coded SUMMARY_PORTAL_DATA_LENGTH constant
+
 
     // the portal details array is just an extension of the portal summary array
     // to allow for niantic adding new items into the array before the extended details start,
     // use the length of the summary array
-    return $.extend(basePortalData(a),{
-      mods:      a[summaryArrayLength+0].map(parseMod),
-      resonators:a[summaryArrayLength+1].map(parseResonator),
-      owner:     a[summaryArrayLength+2]
+    return $.extend(corePortalData(a), summaryPortalData(a),{
+      mods:      a[SUMMARY_PORTAL_DATA_LENGTH+0].map(parseMod),
+      resonators:a[SUMMARY_PORTAL_DATA_LENGTH+1].map(parseResonator),
+      owner:     a[SUMMARY_PORTAL_DATA_LENGTH+2],
+      artifactDetail:  parseArtifactDetail(a[SUMMARY_PORTAL_DATA_LENGTH+3]),
     });
     
   }
@@ -12905,29 +12588,10 @@ window.teamStringToId = function(teamStr) {
 window.extractFromStock = function() {
   window.niantic_params = {}
 
-  window.niantic_params.botguard_method_group_flag = {};
-
   // extract the former nemesis.dashboard.config.CURRENT_VERSION from the code
-  var reVersion = new RegExp('[a-z]=[a-z].getData\\(\\);[a-z].v="([a-f0-9]{40})";');
+  var reVersion = new RegExp('"X-CSRFToken".*[a-z].v="([a-f0-9]{40})";');
 
-  var minified = new RegExp('^[a-zA-Z$][a-zA-Z$0-9]$');
-
-  // required for botguard
-  var requestPrototype = (function() {
-    for(var topLevel in window) {
-      if(!window[topLevel]) continue;
-      // need an example for a request object
-      for(var property in window[topLevel]) {
-        try {
-          if(window[topLevel][property] == "getRegionScoreDetails") {
-            return Object.getPrototypeOf(window[topLevel]);
-          }
-        } catch(e) { // might throw SecurityError or others (noticed on top.opener, which might be cross-origin)
-          continue;
-        }
-      }
-    }
-  })();
+  var minified = new RegExp('^[a-zA-Z$][a-zA-Z$0-9]?$');
 
   for (var topLevel in window) {
     if (minified.test(topLevel)) {
@@ -12969,10 +12633,10 @@ window.extractFromStock = function() {
           }
           if (justInts) {
 
-            // current lengths are: 17: ZOOM_TO_LEVEL, 16: TILES_PER_EDGE
+            // current lengths are: 17: ZOOM_TO_LEVEL, 14: TILES_PER_EDGE
             // however, slightly longer or shorter are a possibility in the future
 
-            if (topObject.length >= 10 && topObject.length <= 18) {
+            if (topObject.length >= 12 && topObject.length <= 18) {
               // a reasonable array length for tile parameters
               // need to find two types:
               // a. portal level limits. decreasing numbers, starting at 8
@@ -12993,7 +12657,8 @@ window.extractFromStock = function() {
                 }
               } // end if (topObject[0] == 8)
 
-              if (topObject[topObject.length-1] == 36000 || topObject[topObject.length-1] == 18000 || topObject[topObject.length-1] == 9000) {
+              // 2015-06-25 - changed to top value of 64000, then to 32000 - allow for them to restore it just in case
+              if (topObject[topObject.length-1] >= 9000 && topObject[topObject.length-1] <= 64000) {
                 var increasing = true;
                 for (var i=1; i<topObject.length; i++) {
                   if (topObject[i-1] > topObject[i]) {
@@ -13014,25 +12679,11 @@ window.extractFromStock = function() {
       }
 
 
-      // finding the required method names for the botguard interface code
-      if(topObject && typeof topObject == "object" && Object.getPrototypeOf(topObject) == requestPrototype) {
-        var methodKey = Object
-          .keys(topObject)
-          .filter(function(key) { return typeof key == "string"; })[0];
-
-        for(var secLevel in topObject) {
-          if(typeof topObject[secLevel] == "boolean") {
-            window.niantic_params.botguard_method_group_flag[topObject[methodKey]] = topObject[secLevel];
-          }
-        }
-      }
-
-
     }
   }
 
 
-  if (niantic_params.CURRENT_VERSION === undefined || Object.keys(window.niantic_params.botguard_method_group_flag).length == 0) {
+  if (niantic_params.CURRENT_VERSION === undefined) {
     dialog({
       title: 'IITC Broken',
       html: '<p>IITC failed to extract the required parameters from the intel site</p>'
@@ -13108,6 +12759,7 @@ window.updateGameScore = function(data) {
 // portalSelected: called when portal on map is selected/unselected.
 //              Provide guid of selected and unselected portal.
 // mapDataRefreshStart: called when we start refreshing map data
+// mapDataEntityInject: called just as we start to render data. has callback to inject cached entities into the map render
 // mapDataRefreshEnd: called when we complete the map data load
 // portalAdded: called when a portal has been received and is about to
 //              be added to its layer group. Note that this does NOT
@@ -13145,7 +12797,7 @@ window.updateGameScore = function(data) {
 window._hooks = {}
 window.VALID_HOOKS = [
   'portalSelected', 'portalDetailsUpdated',
-  'mapDataRefreshStart', 'mapDataRefreshEnd',
+  'mapDataRefreshStart', 'mapDataEntityInject', 'mapDataRefreshEnd',
   'portalAdded', 'linkAdded', 'fieldAdded',
   'publicChatDataAvailable', 'factionChatDataAvailable',
   'requestFinished', 'nicknameClicked',
@@ -13351,11 +13003,17 @@ window.getPosition = function() {
 
 window.setupDataTileParams = function() {
   // default values - used to fall back to if we can't detect those used in stock intel
-  var DEFAULT_ZOOM_TO_TILES_PER_EDGE = [256, 256, 256, 256, 512, 512, 512, 2048, 2048, 2048, 4096, 4096, 6500, 6500, 6500, 18e3, 18e3, 36e3];
-  var DEFAULT_ZOOM_TO_LEVEL = [ 8, 8, 8, 8, 7, 7, 7, 6, 6, 5, 4, 4, 3, 2, 2, 1, 1 ];
+  var DEFAULT_ZOOM_TO_TILES_PER_EDGE = [1,1,1,40,40,80,80,320,1000,2000,2000,4000,8000,16000,16000,32000];
+  var DEFAULT_ZOOM_TO_LEVEL = [8,8,8,8,7,7,7,6,6,5,4,4,3,2,2,1,1];
 
+  // stock intel doesn't have this array (they use a switch statement instead), but this is far neater
+  var DEFAULT_ZOOM_TO_LINK_LENGTH = [200000,200000,200000,200000,200000,60000,60000,10000,5000,2500,2500,800,300,0,0];
 
   window.TILE_PARAMS = {};
+
+  // not in stock to detect - we'll have to assume the above values...
+  window.TILE_PARAMS.ZOOM_TO_LINK_LENGTH = DEFAULT_ZOOM_TO_LINK_LENGTH;
+
 
   if (niantic_params.ZOOM_TO_LEVEL && niantic_params.TILES_PER_EDGE) {
     window.TILE_PARAMS.ZOOM_TO_LEVEL = niantic_params.ZOOM_TO_LEVEL;
@@ -13364,33 +13022,56 @@ window.setupDataTileParams = function() {
 
     // lazy numerical array comparison
     if ( JSON.stringify(niantic_params.ZOOM_TO_LEVEL) != JSON.stringify(DEFAULT_ZOOM_TO_LEVEL)) {
-      console.warn('Tile parameter ZOOM_TO_LEVEL have changed in stock intel. Detectec correct values, but code should be updated');
+      console.warn('Tile parameter ZOOM_TO_LEVEL have changed in stock intel. Detected correct values, but code should be updated');
       debugger;
     }
     if ( JSON.stringify(niantic_params.TILES_PER_EDGE) != JSON.stringify(DEFAULT_ZOOM_TO_TILES_PER_EDGE)) {
-      console.warn('Tile parameter ZOOM_TO_LEVEL have changed in stock intel. Detectec correct values, but code should be updated');
+      console.warn('Tile parameter TILES_PER_EDGE have changed in stock intel. Detected correct values, but code should be updated');
       debugger;
     }
 
   } else {
-    console.warn('Failed to detect both ZOOM_TO_LEVEL and TILES_PER_EDGE in the stock intel site - using internal defaults');
-    debugger;
+    dialog({
+      title: 'IITC Warning',
+      html: "<p>IITC failed to detect the ZOOM_TO_LEVEL and/or TILES_PER_EDGE settings from the stock intel site.</p>"
+           +"<p>IITC is now using fallback default values. However, if detection has failed it's likely the values have changed."
+           +" IITC may not load the map if these default values are wrong.</p>",
+    });
 
     window.TILE_PARAMS.ZOOM_TO_LEVEL = DEFAULT_ZOOM_TO_LEVEL;
     window.TILE_PARAMS.TILES_PER_EDGE = DEFAULT_ZOOM_TO_TILES_PER_EDGE;
   }
 
-  // disable SHOW_MORE_PORTALS if it would be unfriendly to the servers (i.e. result in more requests)
-  // needs to be fired a bit later, after plugins have been initialised
-  setTimeout(function(){
-    if (window.CONFIG_ZOOM_SHOW_MORE_PORTALS) {
-      if (window.TILE_PARAMS.TILES_PER_EDGE[17] > window.TILE_PARAMS.TILES_PER_EDGE[1]) {
-        var edgeScale = window.TILE_PARAMS.TILES_PER_EDGE[17]/window.TILE_PARAMS.TILES_PER_EDGE[1];
-        var mapScale = edgeScale*edgeScale;
-      }
-    }
-  }, 1);
+  // 2015-07-01: niantic added code to the stock site that overrides the min zoom level for unclaimed portals to 15 and above
+  // instead of updating the zoom-to-level array. makes no sense really....
+  // we'll just chop off the array at that point, so the code defaults to level 0 (unclaimed) everywhere...
+  window.TILE_PARAMS.ZOOM_TO_LEVEL = window.TILE_PARAMS.ZOOM_TO_LEVEL.slice(0,15);
 
+}
+
+
+window.debugMapZoomParameters = function() {
+
+  //for debug purposes, log the tile params used for each zoom level
+  console.log('DEBUG: Map Zoom Parameters');
+  var doneZooms = {};
+  for (var z=MIN_ZOOM; z<=21; z++) {
+    var ourZoom = getDataZoomForMapZoom(z);
+    console.log('DEBUG: map zoom '+z+': IITC requests '+ourZoom+(ourZoom!=z?' instead':''));
+    if (!doneZooms[ourZoom]) {
+      var params = getMapZoomTileParameters(ourZoom);
+      var msg = 'DEBUG: data zoom '+ourZoom;
+      if (params.hasPortals) {
+        msg += ' has portals, L'+params.level+'+';
+      } else {
+        msg += ' NO portals (was L'+params.level+'+)';
+      }
+      msg += ', minLinkLength='+params.minLinkLength;
+      msg += ', tiles per edge='+params.tilesPerEdge;
+      console.log(msg);
+      doneZooms[ourZoom] = true;
+    }
+  }
 }
 
 
@@ -13404,12 +13085,12 @@ window.getMapZoomTileParameters = function(zoom) {
 
   var level = window.TILE_PARAMS.ZOOM_TO_LEVEL[zoom] || 0;  // default to level 0 (all portals) if not in array
 
-  if (window.CONFIG_ZOOM_SHOW_LESS_PORTALS_ZOOMED_OUT) {
-    if (level <= 17) {
-      // reduce portal detail level by one - helps reduce clutter
-      level = level+10;
-    }
-  }
+//  if (window.CONFIG_ZOOM_SHOW_LESS_PORTALS_ZOOMED_OUT) {
+//    if (level <= 7 && level >= 4) {
+//      // reduce portal detail level by one - helps reduce clutter
+//      level = level+1;
+//    }
+//  }
 
   var maxTilesPerEdge = window.TILE_PARAMS.TILES_PER_EDGE[window.TILE_PARAMS.TILES_PER_EDGE.length-1];
 
@@ -13417,6 +13098,8 @@ window.getMapZoomTileParameters = function(zoom) {
     level: level,
     maxLevel: window.TILE_PARAMS.ZOOM_TO_LEVEL[zoom] || 0,  // for reference, for log purposes, etc
     tilesPerEdge: window.TILE_PARAMS.TILES_PER_EDGE[zoom] || maxTilesPerEdge,
+    minLinkLength: window.TILE_PARAMS.ZOOM_TO_LINK_LENGTH[zoom] || 0,
+    hasPortals: zoom >= window.TILE_PARAMS.ZOOM_TO_LINK_LENGTH.length,  // no portals returned at all when link length limits things
     zoom: zoom  // include the zoom level, for reference
   };
 }
@@ -13429,11 +13112,10 @@ window.getDataZoomForMapZoom = function(zoom) {
 
   // firstly, some of IITCs zoom levels, depending on base map layer, can be higher than stock. limit zoom level
   // (stock site max zoom may vary depending on google maps detail in the area - 20 or 21 max is common)
-  if (zoom > 20) {
-    zoom = 20;
+  if (zoom > 21) {
+    zoom = 21;
   }
 
-  var origTileParams = getMapZoomTileParameters(zoom);
 
   if (!window.CONFIG_ZOOM_DEFAULT_DETAIL_LEVEL) {
 
@@ -13441,27 +13123,24 @@ window.getDataZoomForMapZoom = function(zoom) {
     // to avoid impacting server load, we keep ourselves restricted to a zoom level with the sane numbre
     // of tilesPerEdge and portal levels visible
 
+    var origTileParams = getMapZoomTileParameters(zoom);
+
     while (zoom > MIN_ZOOM) {
       var newTileParams = getMapZoomTileParameters(zoom-1);
-      if (newTileParams.tilesPerEdge != origTileParams.tilesPerEdge || newTileParams.level != origTileParams.level) {
+
+      if ( newTileParams.tilesPerEdge != origTileParams.tilesPerEdge
+        || newTileParams.hasPortals != origTileParams.hasPortals
+        || newTileParams.level*newTileParams.hasPortals != origTileParams.level*origTileParams.hasPortals  // multiply by 'hasPortals' bool - so comparison does not matter when no portals available
+      ) {
         // switching to zoom-1 would result in a different detail level - so we abort changing things
         break;
       } else {
         // changing to zoom = zoom-1 results in identical tile parameters - so we can safely step back
         // with no increase in either server load or number of requests
-        zoom = zoom+10;
+        zoom = zoom-1;
       }
     }
 
-  }
-
-  if (window.CONFIG_ZOOM_SHOW_MORE_PORTALS) {
-    // this is, in theory, slightly 'unfriendly' to the servers. in practice, this isn't the case - and it can even be nicer
-    // as it vastly improves cacheing in IITC and also reduces the amount of panning/zooming a user would do
-    if (zoom >= 10) {
-      //L1+ and closer zooms. the 'all portals' zoom uses the same tile size, so it's no harm to request things at that zoom level
-      zoom = 17;
-    }
   }
 
   return zoom;
@@ -13627,7 +13306,6 @@ window.RenderDebugTiles.prototype.runClearPass = function() {
 
 
 window.Render = function() {
-
   this.portalMarkerScale = undefined;
 }
 
@@ -13648,7 +13326,7 @@ window.Render.prototype.startRenderPass = function(level,bounds) {
   // this will just avoid a few entity removals at start of render when they'll just be added again
   var paddedBounds = bounds.pad(0.1);
 
-  this.clearPortalsBelowLevelOrOutsideBounds(level,paddedBounds);
+  this.clearPortalsOutsideBounds(paddedBounds);
 
   this.clearLinksOutsideBounds(paddedBounds);
   this.clearFieldsOutsideBounds(paddedBounds);
@@ -13657,12 +13335,12 @@ window.Render.prototype.startRenderPass = function(level,bounds) {
   this.rescalePortalMarkers();
 }
 
-window.Render.prototype.clearPortalsBelowLevelOrOutsideBounds = function(level,bounds) {
+window.Render.prototype.clearPortalsOutsideBounds = function(bounds) {
   var count = 0;
   for (var guid in window.portals) {
     var p = portals[guid];
-    // clear portals below specified level - unless it's the selected portal, or it's relevant to artifacts
-    if ((parseInt(p.options.level) < level || !bounds.contains(p.getLatLng())) && guid !== selectedPortal && !artifact.isInterestingPortal(guid)) {
+    // clear portals outside visible bounds - unless it's the selected portal, or it's relevant to artifacts
+    if (!bounds.contains(p.getLatLng()) && guid !== selectedPortal && !artifact.isInterestingPortal(guid)) {
       this.deletePortalEntity(guid);
       count++;
     }
@@ -13733,7 +13411,7 @@ window.Render.prototype.processDeletedGameEntityGuids = function(deleted) {
 
 }
 
-window.Render.prototype.processGameEntities = function(entities,ignoreLevel) {
+window.Render.prototype.processGameEntities = function(entities) {
 
   // we loop through the entities three times - for fields, links and portals separately
   // this is a reasonably efficient work-around for leafletjs limitations on svg render order
@@ -13754,27 +13432,13 @@ window.Render.prototype.processGameEntities = function(entities,ignoreLevel) {
     }
   }
 
-  // 2015-03-12 - Niantic have been returning all mission portals to the client, ignoring portal level
-  // and density filtering usually in use. this makes things unusable when viewing the global view, so we
-  // filter these out
-  var minLevel = ignoreLevel ? 0 : this.level;
-  var ignoredCount = 0;
-
   for (var i in entities) {
     var ent = entities[i];
 
     if (ent[2][0] == 'p' && !(ent[0] in this.deletedGuid)) {
-      var portalLevel = ent[2][1] == 'N' ? 0 : parseInt(ent[2][4]);
-      if (portalLevel >= minLevel) {
-        this.createPortalEntity(ent);
-      } else {
-        ignoredCount++;
-      }
-
+      this.createPortalEntity(ent);
     }
   }
-
-  if (ignoredCount) console.log('Render: ignored '+ignoredCount+' portals below the level requested from the server');
 }
 
 
@@ -13886,6 +13550,28 @@ window.Render.prototype.deleteFieldEntity = function(guid) {
 }
 
 
+window.Render.prototype.createPlaceholderPortalEntity = function(guid,latE6,lngE6,team) {
+  // intel no longer returns portals at anything but the closest zoom
+  // stock intel creates 'placeholder' portals from the data in links/fields - IITC needs to do the same
+  // we only have the portal guid, lat/lng coords, and the faction - no other data
+  // having the guid, at least, allows the portal details to be loaded once it's selected. however,
+  // no highlighters, portal level numbers, portal names, useful counts of portals, etc are possible
+
+
+  var ent = [
+    guid,       //ent[0] = guid
+    0,          //ent[1] = timestamp - zero will mean any other source of portal data will have a higher timestamp
+                //ent[2] = an array with the entity data
+    [ 'p',      //0 - a portal
+      team,     //1 - team
+      latE6,    //2 - lat
+      lngE6     //3 - lng
+    ]
+  ];
+
+  this.createPortalEntity(ent);
+
+}
 
 
 window.Render.prototype.createPortalEntity = function(ent) {
@@ -13911,7 +13597,7 @@ window.Render.prototype.createPortalEntity = function(ent) {
     this.deletePortalEntity(ent[0]);
   }
 
-  var portalLevel = parseInt(ent[2][4]);
+  var portalLevel = parseInt(ent[2][4])||0;
   var team = teamStringToId(ent[2][1]);
   // the data returns unclaimed portals as level 1 - but IITC wants them treated as level 0
   if (team == TEAM_NONE) portalLevel = 0;
@@ -13973,6 +13659,18 @@ window.Render.prototype.createPortalEntity = function(ent) {
 window.Render.prototype.createFieldEntity = function(ent) {
   this.seenFieldsGuid[ent[0]] = true;  // flag we've seen it
 
+  var data = {
+//    type: ent[2][0],
+    team: ent[2][1],
+    points: ent[2][2].map(function(arr) { return {guid: arr[0], latE6: arr[1], lngE6: arr[2] }; })
+  };
+
+  //create placeholder portals for field corners. we already do links, but there are the odd case where this is useful
+  for (var i=0; i<3; i++) {
+    var p=data.points[i];
+    this.createPlaceholderPortalEntity(p.guid, p.latE6, p.lngE6, data.team);
+  }
+
   // check if entity already exists
   if(ent[0] in window.fields) {
     // yes. in theory, we should never get updated data for an existing field. they're created, and they're destroyed - never changed
@@ -13986,12 +13684,6 @@ window.Render.prototype.createFieldEntity = function(ent) {
     // 2. delete the entity, then re-create with the new data
     this.deleteFieldEntity(ent[0]); // option 2, for now
   }
-
-  var data = {
-//    type: ent[2][0],
-    team: ent[2][1],
-    points: ent[2][2].map(function(arr) { return {guid: arr[0], latE6: arr[1], lngE6: arr[2] }; })
-  };
 
   var team = teamStringToId(ent[2][1]);
   var latlngs = [
@@ -14022,7 +13714,30 @@ window.Render.prototype.createFieldEntity = function(ent) {
 }
 
 window.Render.prototype.createLinkEntity = function(ent,faked) {
+  // Niantic have been faking link entities, based on data from fields
+  // these faked links are sent along with the real portal links, causing duplicates
+  // the faked ones all have longer GUIDs, based on the field GUID (with _ab, _ac, _bc appended)
+  var fakedLink = new RegExp("^[0-9a-f]{32}\.b_[ab][bc]$"); //field GUIDs always end with ".b" - faked links append the edge identifier
+  if (fakedLink.test(ent[0])) return;
+
+
   this.seenLinksGuid[ent[0]] = true;  // flag we've seen it
+
+  var data = { // TODO add other properties and check correction direction
+//    type:   ent[2][0],
+    team:   ent[2][1],
+    oGuid:  ent[2][2],
+    oLatE6: ent[2][3],
+    oLngE6: ent[2][4],
+    dGuid:  ent[2][5],
+    dLatE6: ent[2][6],
+    dLngE6: ent[2][7]
+  };
+
+  // create placeholder entities for link start and end points (before checking if the link itself already exists
+  this.createPlaceholderPortalEntity(data.oGuid, data.oLatE6, data.oLngE6, data.team);
+  this.createPlaceholderPortalEntity(data.dGuid, data.dLatE6, data.dLngE6, data.team);
+
 
   // check if entity already exists
   if (ent[0] in window.links) {
@@ -14037,17 +13752,6 @@ window.Render.prototype.createLinkEntity = function(ent,faked) {
     // 2. delete the entity, then re-create it with the new data
     this.deleteLinkEntity(ent[0]); // option 2 - for now
   }
-
-  var data = { // TODO add other properties and check correction direction
-//    type:   ent[2][0],
-    team:   ent[2][1],
-    oGuid:  ent[2][2],
-    oLatE6: ent[2][3],
-    oLngE6: ent[2][4],
-    dGuid:  ent[2][5],
-    dLatE6: ent[2][6],
-    dLngE6: ent[2][7]
-  };
 
   var team = teamStringToId(ent[2][1]);
   var latlngs = [
@@ -14092,12 +13796,12 @@ window.Render.prototype.rescalePortalMarkers = function() {
 
 // add the portal to the visible map layer
 window.Render.prototype.addPortalToMapLayer = function(portal) {
-  portalsFactionLayers[parseInt(portal.options.level)][portal.options.team].addLayer(portal);
+  portalsFactionLayers[parseInt(portal.options.level)||0][portal.options.team].addLayer(portal);
 }
 
 window.Render.prototype.removePortalFromMapLayer = function(portal) {
   //remove it from the portalsLevels layer
-  portalsFactionLayers[parseInt(portal.options.level)][portal.options.team].removeLayer(portal);
+  portalsFactionLayers[parseInt(portal.options.level)||0][portal.options.team].removeLayer(portal);
 }
 
 
@@ -14152,7 +13856,10 @@ window.MapDataRequest = function() {
   this.RUN_QUEUE_DELAY = 0;
 
   // delay before processing the queue after failed requests
-  this.BAD_REQUEST_RUN_QUEUE_DELAY = 10; // longer delay before doing anything after errors (other than TIMEOUT)
+  this.BAD_REQUEST_RUN_QUEUE_DELAY = 5; // longer delay before doing anything after errors (other than TIMEOUT)
+
+  // delay before processing the queue after empty responses
+  this.EMPTY_RESPONSE_RUN_QUEUE_DELAY = 5; // also long delay - empty responses are likely due to some server issues
 
   // delay before processing the queue after error==TIMEOUT requests. this is 'expected', so minimal extra delay over the regular RUN_QUEUE_DELAY
   this.TIMEOUT_REQUEST_RUN_QUEUE_DELAY = 0;
@@ -14161,7 +13868,7 @@ window.MapDataRequest = function() {
   // render queue
   // number of items to process in each render pass. there are pros and cons to smaller and larger values
   // (however, if using leaflet canvas rendering, it makes sense to push as much as possible through every time)
-  this.RENDER_BATCH_SIZE = L.Path.CANVAS ? 1E9 : 500;
+  this.RENDER_BATCH_SIZE = L.Path.CANVAS ? 1E9 : 1500;
 
   // delay before repeating the render loop. this gives a better chance for user interaction
   this.RENDER_PAUSE = (typeof android === 'undefined') ? 0.1 : 0.2; //100ms desktop, 200ms mobile
@@ -14173,6 +13880,13 @@ window.MapDataRequest = function() {
 
   // ensure we have some initial map status
   this.setStatus ('startup', undefined, -1);
+
+  // add a portalDetailLoaded hook, so we can use the exteneed details to update portals on the map
+  var _this = this;
+  addHook('portalDetailLoaded',function(data){
+    _this.render.processGameEntities([data.ent]);
+  });
+
 }
 
 
@@ -14336,8 +14050,11 @@ window.MapDataRequest.prototype.refresh = function() {
 
   this.render.startRenderPass(tileParams.level, dataBounds);
 
+  var _render = this.render;
+  window.runHooks ('mapDataEntityInject', {callback: function(ents) { _render.processGameEntities(ents);}});
 
-  this.render.processGameEntities(artifact.getArtifactEntities(),true);
+
+  this.render.processGameEntities(artifact.getArtifactEntities());
 
   var logMessage = 'requesting data tiles at zoom '+dataZoom;
   if (tileParams.level != tileParams.maxLevel) {
@@ -14594,6 +14311,7 @@ window.MapDataRequest.prototype.handleResponse = function (data, tiles, success)
   var errorTiles = [];
   var retryTiles = [];
   var timeoutTiles = [];
+  var unaccountedTiles = tiles.slice(0); // Clone
 
   if (!success || !data || !data.result) {
     console.warn('Request.handleResponse: request failed - requeuing...'+(data && data.error?' error: '+data.error:''));
@@ -14620,7 +14338,7 @@ window.MapDataRequest.prototype.handleResponse = function (data, tiles, success)
 
       window.runHooks('requestFinished', {success: false});
     }
-
+    unaccountedTiles = [];
   } else {
 
     // TODO: use result.minLevelOfDetail ??? stock site doesn't use it yet...
@@ -14629,7 +14347,7 @@ window.MapDataRequest.prototype.handleResponse = function (data, tiles, success)
 
     for (var id in m) {
       var val = m[id];
-
+      unaccountedTiles.splice(unaccountedTiles.indexOf(id), 1);
       if ('error' in val) {
         // server returned an error for this individual data tile
 
@@ -14671,6 +14389,7 @@ window.MapDataRequest.prototype.handleResponse = function (data, tiles, success)
   // set the queue delay based on any errors or timeouts
   // NOTE: retryTimes are retried at the regular delay - no longer wait as for error/timeout cases
   var nextQueueDelay = errorTiles.length > 0 ? this.BAD_REQUEST_RUN_QUEUE_DELAY :
+                       unaccountedTiles.length > 0 ? this.EMPTY_RESPONSE_RUN_QUEUE_DELAY :
                        timeoutTiles.length > 0 ? this.TIMEOUT_REQUEST_RUN_QUEUE_DELAY :
                        this.RUN_QUEUE_DELAY;
   var statusMsg = 'getEntities status: '+tiles.length+' tiles: ';
@@ -14678,6 +14397,7 @@ window.MapDataRequest.prototype.handleResponse = function (data, tiles, success)
   if (retryTiles.length) statusMsg += ', '+retryTiles.length+' retried';
   if (timeoutTiles.length) statusMsg += ', '+timeoutTiles.length+' timed out';
   if (errorTiles.length) statusMsg += ', '+errorTiles.length+' failed';
+  if (unaccountedTiles.length) statusMsg += ', '+unaccountedTiles.length+' unaccounted';
   statusMsg += '. delay '+nextQueueDelay+' seconds';
   console.log (statusMsg);
 
@@ -14704,6 +14424,14 @@ window.MapDataRequest.prototype.handleResponse = function (data, tiles, success)
   if (errorTiles.length > 0) {
     for (var i in errorTiles) {
       var id = errorTiles[i];
+      delete this.requestedTiles[id];
+      this.requeueTile(id, true);
+    }
+  }
+
+  if (unaccountedTiles.length > 0) {
+    for (var i in unaccountedTiles) {
+      var id = unaccountedTiles[i];
       delete this.requestedTiles[id];
       this.requeueTile(id, true);
     }
@@ -14908,16 +14636,18 @@ window.ornaments.addPortal = function(portal) {
   var size = window.ornaments.OVERLAY_SIZE;
   var latlng = portal.getLatLng();
 
-  window.ornaments._portals[guid] = portal.options.data.ornaments.map(function(ornament) {
-    var icon = L.icon({
-      iconUrl: "//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/"+ornament+".png",
-      iconSize: [size, size],
-      iconAnchor: [size/2,size/2],
-      className: 'no-pointer-events'  // the clickable: false below still blocks events going through to the svg underneath
-    });
+  if (portal.options.data.ornaments) {
+    window.ornaments._portals[guid] = portal.options.data.ornaments.map(function(ornament) {
+      var icon = L.icon({
+        iconUrl: "//commondatastorage.googleapis.com/ingress.com/img/map_icons/marker_images/"+ornament+".png",
+        iconSize: [size, size],
+        iconAnchor: [size/2,size/2],
+        className: 'no-pointer-events'  // the clickable: false below still blocks events going through to the svg underneath
+      });
 
-    return L.marker(latlng, {icon: icon, clickable: false, keyboard: false, opacity: window.ornaments.OVERLAY_OPACITY }).addTo(window.ornaments._layer);
-  });
+      return L.marker(latlng, {icon: icon, clickable: false, keyboard: false, opacity: window.ornaments.OVERLAY_OPACITY }).addTo(window.ornaments._layer);
+    });
+  }
 }
 
 window.ornaments.removePortal = function(portal) {
@@ -15232,7 +14962,11 @@ var handleResponse = function(guid, data, success) {
   }
 
   if (success) {
+
     var dict = decodeArray.portalDetail(data.result);
+
+    // entity format, as used in map data
+    var ent = [guid,dict.timestamp,data.result];
 
     cache.store(guid,dict);
 
@@ -15242,7 +14976,7 @@ var handleResponse = function(guid, data, success) {
       renderPortalDetails(guid);
     }
 
-    window.runHooks ('portalDetailLoaded', {guid:guid, success:success, details:dict});
+    window.runHooks ('portalDetailLoaded', {guid:guid, success:success, details:dict, ent:ent});
 
   } else {
     if (data && data.error == "RETRY") {
@@ -15319,46 +15053,13 @@ window.renderPortalDetails = function(guid) {
  
 
   var img = fixPortalImageUrl(details ? details.image : data.image);
-  var title = data.title;
+  var title = (details && details.title) || (data && data.title) || '(untitled)';
 
   var lat = data.latE6/1E6;
   var lng = data.lngE6/1E6;
 
-  var imgTitle = details ? getPortalDescriptionFromDetails(details) : data.title;
-  imgTitle += '\n\nClick to show full image.';
-  var portalDetailObj = details ? window.getPortalDescriptionFromDetailsExtended(details) : undefined;
+  var imgTitle = title+'\n\nClick to show full image.';
 
-  var portalDetailedDescription = '';
-
-  if(portalDetailObj) {
-    portalDetailedDescription = '<table description="Portal Photo Details" class="portal_details">';
-
-    // TODO (once the data supports it) - portals can have multiple photos. display all, with navigation between them
-    // (at this time the data isn't returned from the server - although a count of images IS returned!)
-
-    if(portalDetailObj.submitter.name.length > 0) {
-      if(portalDetailObj.submitter.team) {
-        submitterSpan = '<span class="' + (portalDetailObj.submitter.team === 'RESISTANCE' ? 'res' : 'enl') + ' nickname">';
-      } else {
-        submitterSpan = '<span class="none">';
-      }
-      portalDetailedDescription += '<tr><th>Photo by:</th><td>' + submitterSpan
-                                + escapeHtmlSpecialChars(portalDetailObj.submitter.name) + '</span>'+(portalDetailObj.submitter.voteCount !== undefined ? ' (' + portalDetailObj.submitter.voteCount + ' votes)' : '')+'</td></tr>';
-    }
-    if(portalDetailObj.submitter.link.length > 0) {
-      portalDetailedDescription += '<tr><th>Photo from:</th><td><a href="'
-                                + escapeHtmlSpecialChars(portalDetailObj.submitter.link) + '">' + escapeHtmlSpecialChars(portalDetailObj.submitter.link) + '</a></td></tr>';
-    }
-
-    if(portalDetailObj.description) {
-      portalDetailedDescription += '<tr class="padding-top"><th>Description:</th><td>' + escapeHtmlSpecialChars(portalDetailObj.description) + '</td></tr>';
-    }
-//    if(d.descriptiveText.map.ADDRESS) {
-//      portalDetailedDescription += '<tr><th>Address:</th><td>' + escapeHtmlSpecialChars(d.descriptiveText.map.ADDRESS) + '</td></tr>';
-//    }
-
-    portalDetailedDescription += '</table>';
-  }
 
   // portal level. start with basic data - then extend with fractional info in tooltip if available
   var levelInt = (teamStringToId(data.team) == TEAM_NONE) ? 0 : data.level;
@@ -15405,7 +15106,7 @@ window.renderPortalDetails = function(guid) {
     .html('') //to ensure it's clear
     .attr('class', TEAM_TO_CSS[teamStringToId(data.team)])
     .append(
-      $('<h3>').attr({class:'title'}).text(data.title),
+      $('<h3>').attr({class:'title'}).text(title),
 
       $('<span>').attr({
         class: 'close',
@@ -15419,7 +15120,6 @@ window.renderPortalDetails = function(guid) {
       .attr({class:'imgpreview', title:imgTitle, style:"background-image: url('"+img+"')"})
       .append(
         $('<span>').attr({id:'level', title: levelDetails}).text(levelInt),
-        $('<div>').attr({class:'portalDetails'}).html(portalDetailedDescription),
         $('<img>').attr({class:'hide', src:img})
       ),
 
@@ -15447,11 +15147,15 @@ window.getPortalMiscDetails = function(guid,d) {
 
     // collect some random data that’s not worth to put in an own method
     var linkInfo = getPortalLinks(guid);
+    var maxOutgoing = getMaxOutgoingLinks(d);
     var linkCount = linkInfo.in.length + linkInfo.out.length;
     var links = {incoming: linkInfo.in.length, outgoing: linkInfo.out.length};
 
-    function linkExpl(t) { return '<tt title="'+links.outgoing+' links out (8 max)\n'+links.incoming+' links in\n('+(links.outgoing+links.incoming)+' total)">'+t+'</tt>'; }
-    var linksText = [linkExpl('links'), linkExpl(links.outgoing+' out / '+links.incoming+' in')];
+    var title = 'at most ' + maxOutgoing + ' outgoing links\n' +
+                links.outgoing + ' links out\n' +
+                links.incoming + ' links in\n' +
+                '(' + (links.outgoing+links.incoming) + ' total)'
+    var linksText = ['links', links.outgoing+' out / '+links.incoming+' in', title];
 
     var player = d.owner
       ? '<span class="nickname">' + d.owner + '</span>'
@@ -15492,31 +15196,22 @@ window.getPortalMiscDetails = function(guid,d) {
         '<span title="force amplifier" class="text-overflow-ellipsis">force amplifier</span>',
         '×'+attackValues.force_amplifier]);
 
-    // artifact details
-
-    // 2014-02-06: stock site changed from supporting 'jarvis shards' to 'amar artifacts'(?) - so let's see what we can do to be generic...
-    $.each(artifact.getArtifactTypes(),function(index,type) {
-      var artdata = artifact.getPortalData (guid, type);
-      if (artdata) {
-        var details = artifact.getArtifactDescriptions(type);
-        if (details) {
-          // the genFourColumnTable function below doesn't handle cases where one column is null and the other isn't - so default to *something* in both columns
-          var target = ['',''], shards = [details.fragmentName,'(none)'];
-          if (artdata.target) {
-            target = ['target', '<span class="'+TEAM_TO_CSS[artdata.target]+'">'+(artdata.target==TEAM_RES?'Resistance':'Enlightened')+'</span>'];
-          }
-          if (artdata.fragments) {
-            shards = [details.fragmentName, '#'+artdata.fragments.join(', #')];
-          }
-
-          randDetailsData.push (target, shards);
-        } else {
-          console.warn('Unknown artifact type '+type+': no names, so cannot display');
-        }
-      }
-    });
-
     randDetails = '<table id="randdetails">' + genFourColumnTable(randDetailsData) + '</table>';
+
+
+    // artifacts - tacked on after (but not as part of) the 'randdetails' table
+    // instead of using the existing columns....
+
+    if (d.artifactBrief && d.artifactBrief.target && Object.keys(d.artifactBrief.target).length > 0) {
+      var targets = Object.keys(d.artifactBrief.target);
+//currently (2015-07-10) we no longer know the team each target portal is for - so we'll just show the artifact type(s) 
+       randDetails += '<div id="artifact_target">Target portal: '+targets.map(function(x) { return x.capitalize(); }).join(', ')+'</div>';
+    }
+
+    // shards - taken directly from the portal details
+    if (d.artifactDetail) {
+      randDetails += '<div id="artifact_fragments">Shards: '+d.artifactDetail.displayName+' #'+d.artifactDetail.fragments.join(', ')+'</div>';
+    }
 
   }
 
@@ -15609,67 +15304,15 @@ window.getRangeText = function(d) {
   
   if(!range.isLinkable) title += '\nPortal is missing resonators,\nno new links can be made';
   
-  return ['<span title="' + title + '">range</span>',
+  return ['range',
       '<a onclick="window.rangeLinkClick()"'
     + (range.isLinkable ? '' : ' style="text-decoration:line-through;"')
-    + ' title="'+title+'">'
+    + '>'
     + (range.range > 1000
       ? Math.floor(range.range/1000) + ' km'
       : Math.floor(range.range)      + ' m')
-    + '</a>'];
-}
-
-// generates description text from details for portal
-window.getPortalDescriptionFromDetails = function(details) {
-  return details.title || '(untitled)';
-
-//  var descObj = details.descriptiveText.map;
-//  // FIXME: also get real description?
-//  var desc = descObj.TITLE;
-//  if(descObj.ADDRESS)
-//    desc += '\n' + descObj.ADDRESS;
-////  if(descObj.ATTRIBUTION)
-////    desc += '\nby '+descObj.ATTRIBUTION+' ('+descObj.ATTRIBUTION_LINK+')';
-//  return desc;
-}
-
-// Grabs more info, including the submitter name for the current main
-// portal image
-window.getPortalDescriptionFromDetailsExtended = function(details) {
-  var descObj = details.title;
-  var photoStreamObj = details.photoStreamInfo;
-
-  var submitterObj = new Object();
-  submitterObj.type = "";
-  submitterObj.name = "";
-  submitterObj.team = "";
-  submitterObj.link = "";
-  submitterObj.voteCount = undefined;
-
-  if(photoStreamObj && photoStreamObj.hasOwnProperty("coverPhoto") && photoStreamObj.coverPhoto.hasOwnProperty("attributionMarkup")) {
-    submitterObj.name = "Unknown";
-
-    var attribution = photoStreamObj.coverPhoto.attributionMarkup;
-    submitterObj.type = attribution[0];
-    if(attribution[1].hasOwnProperty("plain"))
-      submitterObj.name = attribution[1].plain;
-    if(attribution[1].hasOwnProperty("team"))
-      submitterObj.team = attribution[1].team;
-    if(attribution[1].hasOwnProperty("attributionLink"))
-      submitterObj.link = attribution[1].attributionLink;
-    if(photoStreamObj.coverPhoto.hasOwnProperty("voteCount"))
-      submitterObj.voteCount = photoStreamObj.coverPhoto.voteCount;
-  }
-
-
-  var portalDetails = {
-    title: descObj.TITLE,
-    description: descObj.DESCRIPTION,
-    address: descObj.ADDRESS,
-    submitter: submitterObj
-  };
-
-  return portalDetails;
+    + '</a>',
+    title];
 }
 
 
@@ -15712,6 +15355,7 @@ window.getModDetails = function(d) {
           else if (key === 'ATTACK_FREQUENCY')      val = (val/1000) +'x'; // 2000 = 2x
           else if (key === 'FORCE_AMPLIFIER')       val = (val/1000) +'x'; // 2000 = 2x
           else if (key === 'LINK_RANGE_MULTIPLIER') val = (val/1000) +'x'; // 2000 = 2x
+          else if (key === 'LINK_DEFENSE_BOOST')    val = (val/1000) +'x'; // 1500 = 1.5x
           else if (key === 'REMOVAL_STICKINESS' && val > 100) val = (val/10000)+'%'; // an educated guess
           // else display unmodified. correct for shield mitigation and multihack - unknown for future/other mods
 
@@ -15747,9 +15391,9 @@ window.getModDetails = function(d) {
 window.getEnergyText = function(d) {
   var currentNrg = getCurrentPortalEnergy(d);
   var totalNrg = getTotalPortalEnergy(d);
-  var inf = currentNrg + ' / ' + totalNrg;
+  var title = currentNrg + ' / ' + totalNrg;
   var fill = prettyEnergy(currentNrg) + ' / ' + prettyEnergy(totalNrg)
-  return ['energy', '<tt title="'+inf+'">' + fill + '</tt>'];
+  return ['energy', fill, title];
 }
 
 
@@ -15833,22 +15477,19 @@ window.getAttackApGainText = function(d,fieldCount,linkCount) {
   var breakdown = getAttackApGain(d,fieldCount,linkCount);
   var totalGain = breakdown.enemyAp;
 
-  function tt(text) {
-    var t = '';
-    if (teamStringToId(PLAYER.team) == teamStringToId(d.team)) {
-      totalGain = breakdown.friendlyAp;
-      t += 'Friendly AP:\t' + breakdown.friendlyAp + '\n';
-      t += '  Deploy ' + breakdown.deployCount + ', ';
-      t += 'Upgrade ' + breakdown.upgradeCount + '\n';
-      t += '\n';
-    }
-    t += 'Enemy AP:\t' + breakdown.enemyAp + '\n';
-    t += '  Destroy AP:\t' + breakdown.destroyAp + '\n';
-    t += '  Capture AP:\t' + breakdown.captureAp + '\n';
-    return '<tt title="' + t + '">' + text + '</tt>';
+  var t = '';
+  if (teamStringToId(PLAYER.team) == teamStringToId(d.team)) {
+    totalGain = breakdown.friendlyAp;
+    t += 'Friendly AP:\t' + breakdown.friendlyAp + '\n';
+    t += '  Deploy ' + breakdown.deployCount + ', ';
+    t += 'Upgrade ' + breakdown.upgradeCount + '\n';
+    t += '\n';
   }
+  t += 'Enemy AP:\t' + breakdown.enemyAp + '\n';
+  t += '  Destroy AP:\t' + breakdown.destroyAp + '\n';
+  t += '  Capture AP:\t' + breakdown.captureAp + '\n';
 
-  return [tt('AP Gain'), tt(digits(totalGain))];
+  return ['AP Gain', digits(totalGain), t];
 }
 
 
@@ -15857,16 +15498,12 @@ window.getHackDetailsText = function(d) {
 
   var shortHackInfo = hackDetails.hacks+' @ '+formatInterval(hackDetails.cooldown);
 
-  function tt(text) {
-    var t = 'Hacks available every 4 hours\n';
-    t += 'Hack count:\t'+hackDetails.hacks+'\n';
-    t += 'Cooldown time:\t'+formatInterval(hackDetails.cooldown)+'\n';
-    t += 'Burnout time:\t'+formatInterval(hackDetails.burnout)+'\n';
+  var title = 'Hacks available every 4 hours\n'
+            + 'Hack count:\t'+hackDetails.hacks+'\n'
+            + 'Cooldown time:\t'+formatInterval(hackDetails.cooldown)+'\n'
+            + 'Burnout time:\t'+formatInterval(hackDetails.burnout);
 
-    return '<span title="'+t+'">'+text+'</span>';
-  }
-
-  return [tt('hacks'), tt(shortHackInfo)];
+  return ['hacks', shortHackInfo, title];
 }
 
 
@@ -15876,18 +15513,14 @@ window.getMitigationText = function(d,linkCount) {
   var mitigationShort = mitigationDetails.total;
   if (mitigationDetails.excess) mitigationShort += ' (+'+mitigationDetails.excess+')';
 
-  function tt(text) {
-    var t = 'Total shielding:\t'+(mitigationDetails.shields+mitigationDetails.links)+'\n'
-          + '- active:\t'+mitigationDetails.total+'\n'
-          + '- excess:\t'+mitigationDetails.excess+'\n'
-          + 'From\n'
-          + '- shields:\t'+mitigationDetails.shields+'\n'
-          + '- links:\t'+mitigationDetails.links;
+  var title = 'Total shielding:\t'+(mitigationDetails.shields+mitigationDetails.links)+'\n'
+            + '- active:\t'+mitigationDetails.total+'\n'
+            + '- excess:\t'+mitigationDetails.excess+'\n'
+            + 'From\n'
+            + '- shields:\t'+mitigationDetails.shields+'\n'
+            + '- links:\t'+mitigationDetails.links;
 
-    return '<span title="'+t+'">'+text+'</span>';
-  }
-
-  return [tt('shielding'), tt(mitigationShort)];
+  return ['shielding', mitigationShort, title];
 }
 
 
@@ -16208,7 +15841,8 @@ window.getPortalModsByType = function(d, type) {
     TURRET: 'HIT_BONUS',  // and/or ATTACK_FREQUENCY??
     HEATSINK: 'HACK_SPEED',
     MULTIHACK: 'BURNOUT_INSULATION',
-    LINK_AMPLIFIER: 'LINK_RANGE_MULTIPLIER'
+    LINK_AMPLIFIER: 'LINK_RANGE_MULTIPLIER',
+    ULTRA_LINK_AMP: 'OUTGOING_LINKS_BONUS', // and/or LINK_DEFENSE_BOOST??
   };
 
   var stat = typeToStat[type];
@@ -16258,6 +15892,17 @@ window.getPortalMitigationDetails = function(d,linkCount) {
   return mitigation;
 }
 
+window.getMaxOutgoingLinks = function(d) {
+  var linkAmps = getPortalModsByType(d, 'ULTRA_LINK_AMP');
+
+  var links = 8;
+
+  linkAmps.forEach(function(mod, i) {
+    links += parseInt(mod.stats.OUTGOING_LINKS_BONUS);
+  });
+
+  return links;
+};
 
 window.getPortalHackDetails = function(d) {
 
@@ -16405,10 +16050,17 @@ window.getMarkerStyleOptions = function(details) {
   var LEVEL_TO_WEIGHT = [2, 2, 2, 2, 2, 3, 3, 4, 4];
   var LEVEL_TO_RADIUS = [7, 7, 7, 7, 8, 8, 9,10,11];
 
-  var level = Math.floor(details.level);
+  var level = Math.floor(details.level||0);
 
   var lvlWeight = LEVEL_TO_WEIGHT[level] * Math.sqrt(scale);
   var lvlRadius = LEVEL_TO_RADIUS[level] * scale;
+
+  var dashArray = null;
+  // thinner and dashed outline for placeholder portals
+  if (details.team != TEAM_NONE && level==0) {
+    lvlWeight = 1;
+    dashArray = [1,2];
+  }
 
   var options = {
     radius: lvlRadius,
@@ -16419,7 +16071,7 @@ window.getMarkerStyleOptions = function(details) {
     fill: true,
     fillColor: COLORS[details.team],
     fillOpacity: 0.5,
-    dashArray: null
+    dashArray: dashArray
   };
 
   return options;
@@ -17172,6 +16824,8 @@ addHook('search', function(query) {
 
   $.each(portals, function(guid, portal) {
     var data = portal.options.data;
+    if(!data.title) return;
+
     if(data.title.toLowerCase().indexOf(term) !== -1) {
       var team = portal.options.team;
       var color = team==TEAM_NONE ? '#CCC' : COLORS[team];
@@ -17239,6 +16893,9 @@ addHook('search', function(query) {
           opacity: 0.7,
           weight: 2,
           fill: false,
+          pointToLayer: function(featureData,latLng) {
+            return createGenericMarker(latLng,'red');
+          }
         });
       }
 
@@ -17294,7 +16951,6 @@ window.postAjax = function(action, data, successCallback, errorCallback) {
 
   var onSuccess = function(data, textStatus, jqXHR) {
     window.requests.remove(jqXHR);
-    iitc_bg.process_response_params(action,data);
 
     // the Niantic server can return a HTTP success, but the JSON response contains an error. handle that sensibly
     if (data && data.error && data.error == 'out of date') {
@@ -17325,7 +16981,7 @@ window.postAjax = function(action, data, successCallback, errorCallback) {
   }
 
   var versionStr = niantic_params.CURRENT_VERSION;
-  var post_data = JSON.stringify($.extend({}, data, {v: versionStr}, iitc_bg.extra_request_params(action)));
+  var post_data = JSON.stringify($.extend({}, data, {v: versionStr}));
 
   var result = $.ajax({
     url: '/r/'+action,
@@ -17619,15 +17275,32 @@ window.renderUpdateStatusTimer_ = undefined;
 window.renderUpdateStatus = function() {
   var progress = 1;
 
-  // portal level display
-  var t = '<span class="help portallevel" title="Indicates portal levels displayed.  Zoom in to display lower level portals.">';
-  if(!window.isSmartphone()) // space is valuable
-    t += '<b>portals</b>: ';
-  var minlvl = getMinPortalLevel();
-  if(minlvl === 0)
-    t+= '<span id="loadlevel">all</span>';
-  else
-    t+= '<span id="loadlevel" style="background:'+COLORS_LVL[minlvl]+'">L'+minlvl+(minlvl<8?'+':'') + '</span>';
+  // portal/limk level display
+
+  var zoom = map.getZoom();
+  zoom = getDataZoomForMapZoom(zoom);
+  var tileParams = getMapZoomTileParameters(zoom);
+
+  var t = '<span class="help portallevel" title="Indicates portal levels/link lengths displayed.  Zoom in to display more.">';
+
+  if (tileParams.hasPortals) {
+    // zoom level includes portals (and also all links/fields)
+    if(!window.isSmartphone()) // space is valuable
+      t += '<b>portals</b>: ';
+    if(tileParams.level === 0)
+      t += '<span id="loadlevel">all</span>';
+    else
+      t += '<span id="loadlevel" style="background:'+COLORS_LVL[tileParams.level]+'">L'+tileParams.level+(tileParams.level<8?'+':'') + '</span>';
+  } else {
+    if(!window.isSmartphone()) // space is valuable
+      t += '<b>links</b>: ';
+
+    if (tileParams.minLinkLength > 0)
+      t += '<span id="loadlevel">&gt;'+(tileParams.minLinkLength>1000?tileParams.minLinkLength/1000+'km':tileParams.minLinkLength+'m')+'</span>';
+    else
+      t += '<span id="loadlevel">all links</span>';
+  }
+
   t +='</span>';
 
 
@@ -17786,11 +17459,9 @@ window.getURLParam = function(param) {
 
 // read cookie by name.
 // http://stackoverflow.com/a/5639455/1684530 by cwolves
-var cookies;
-window.readCookie = function(name,c,C,i){
-  if(cookies) return cookies[name];
-  c = document.cookie.split('; ');
-  cookies = {};
+window.readCookie = function(name){
+  var C, i, c = document.cookie.split('; ');
+  var cookies = {};
   for(i=c.length-1; i>=0; i--){
     C = c[i].split('=');
     cookies[C[0]] = unescape(C[1]);
@@ -17799,7 +17470,8 @@ window.readCookie = function(name,c,C,i){
 }
 
 window.writeCookie = function(name, val) {
-  document.cookie = name + "=" + val + '; expires=Thu, 31 Dec 2020 23:59:59 GMT; path=/';
+  var d = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = name + "=" + val + '; expires='+d+'; path=/';
 }
 
 window.eraseCookie = function(name) {
@@ -18029,10 +17701,11 @@ window.uniqueArray = function(arr) {
 window.genFourColumnTable = function(blocks) {
   var t = $.map(blocks, function(detail, index) {
     if(!detail) return '';
+    var title = detail[2] ? ' title="'+escapeHtmlSpecialChars(detail[2]) + '"' : '';
     if(index % 2 === 0)
-      return '<tr><td>'+detail[1]+'</td><th>'+detail[0]+'</th>';
+      return '<tr><td'+title+'>'+detail[1]+'</td><th'+title+'>'+detail[0]+'</th>';
     else
-      return '    <th>'+detail[0]+'</th><td>'+detail[1]+'</td></tr>';
+      return '    <th'+title+'>'+detail[0]+'</th><td'+title+'>'+detail[1]+'</td></tr>';
   }).join('');
   if(t.length % 2 === 1) t + '<td></td><td></td></tr>';
   return t;
@@ -18177,7 +17850,7 @@ L.Draggable.prototype._onDown = function(e) {
 
 // inject code into site context
 var script = document.createElement('script');
-var info = { buildName: 'jonatkins', dateTimeVersion: '20150404.827' };
+var info = { buildName: 'jonatkins-test', dateTimeVersion: '20150917.163503' };
 if (this.GM_info && this.GM_info.script) info.script = { version: GM_info.script.version, name: GM_info.script.name, description: GM_info.script.description };
 script.appendChild(document.createTextNode('('+ wrapper +')('+JSON.stringify(info)+');'));
 (document.body || document.head || document.documentElement).appendChild(script);
